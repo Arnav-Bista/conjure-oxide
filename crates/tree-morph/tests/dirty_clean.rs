@@ -4,6 +4,19 @@ use std::sync::atomic::AtomicUsize;
 use tree_morph::prelude::*;
 use uniplate::Uniplate;
 
+/// Initialize tracing subscriber for tests to see trace output
+fn init_tracing() {
+    use std::sync::Once;
+    static INIT: Once = Once::new();
+
+    INIT.call_once(|| {
+        tracing_subscriber::fmt()
+            .with_max_level(tracing::Level::TRACE)
+            .with_test_writer()
+            .init();
+    });
+}
+
 static GLOBAL_RULE_CHECKS: AtomicUsize = AtomicUsize::new(0);
 
 #[derive(Debug, Clone, PartialEq, Eq, Uniplate)]
@@ -59,6 +72,7 @@ impl Rule<Expr, Meta> for MyRule {
 
 #[test]
 fn left_branch_clean() {
+    init_tracing();
     // Top Level is +
     // Left Branch has two Nested Subtractions which do not have any rules
     // So atoms

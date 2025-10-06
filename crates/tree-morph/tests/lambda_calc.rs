@@ -5,6 +5,19 @@ use std::collections::HashSet;
 use tree_morph::prelude::*;
 use uniplate::Uniplate;
 
+/// Initialize tracing subscriber for tests to see trace output
+fn init_tracing() {
+    use std::sync::Once;
+    static INIT: Once = Once::new();
+
+    INIT.call_once(|| {
+        tracing_subscriber::fmt()
+            .with_max_level(tracing::Level::TRACE)
+            .with_test_writer()
+            .init();
+    });
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Uniplate)]
 #[uniplate()]
 enum Expr {
@@ -116,6 +129,7 @@ fn reduce_all(expr: Expr) -> (Expr, u32) {
 
 #[test]
 fn simple_application() {
+    init_tracing();
     // (\x. x) 1 -> 1
     let expr = Expr::App(
         Box::new(Expr::Abs(0, Box::new(Expr::Var(0)))),
@@ -129,6 +143,7 @@ fn simple_application() {
 
 #[test]
 fn nested_application() {
+    init_tracing();
     // ((\x. x) (\y. y)) 1 -> 1
     let expr = Expr::App(
         Box::new(Expr::App(
@@ -145,6 +160,7 @@ fn nested_application() {
 
 #[test]
 fn capture_avoiding_substitution() {
+    init_tracing();
     // (\x. (\y. x)) 1 -> (\y. 1)
     let expr = Expr::App(
         Box::new(Expr::Abs(0, Box::new(Expr::Abs(1, Box::new(Expr::Var(0)))))),
@@ -158,6 +174,7 @@ fn capture_avoiding_substitution() {
 
 #[test]
 fn double_reduction() {
+    init_tracing();
     // (\x. (\y. y)) 1 -> (\y. y)
     let expr = Expr::App(
         Box::new(Expr::Abs(0, Box::new(Expr::Abs(1, Box::new(Expr::Var(1)))))),
@@ -171,6 +188,7 @@ fn double_reduction() {
 
 #[test]
 fn reduce_id() {
+    init_tracing();
     // (\x. x) -> (\x. x)
     let expr = Expr::Abs(0, Box::new(Expr::Var(0)));
     let (result, reductions) = reduce_all(expr);
@@ -181,6 +199,7 @@ fn reduce_id() {
 
 #[test]
 fn no_reduction() {
+    init_tracing();
     // x -> x
     let expr = Expr::Var(1);
     let (result, reductions) = reduce_all(expr);
@@ -191,6 +210,7 @@ fn no_reduction() {
 
 #[test]
 fn complex_expression() {
+    init_tracing();
     // (((\x. (\y. x y)) (\z. z)) (\w. w)) -> (\y. (\w. w) y) -> (\w. w)
     let expr = Expr::App(
         Box::new(Expr::App(

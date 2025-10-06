@@ -6,6 +6,7 @@ use crate::events::EventHandlers;
 use crate::helpers::{SelectorFn, one_or_select};
 use crate::prelude::Rule;
 
+use tracing::{Level, event, span};
 use uniplate::{Uniplate, tagged_zipper::TaggedZipper};
 
 /// An engine for exhaustively transforming trees with user-defined rules.
@@ -160,28 +161,35 @@ where
         T: Uniplate,
         R: Rule<T, M>,
     {
+        // Tracing
+        let _span = span!(Level::TRACE, "morph").entered();
+
         // Holds the other mutable reference to the metadata
         let mut zipper = EngineZipper::new(tree, meta, &self.event_handlers);
 
         'main: loop {
             // Return here after every successful rule application
-
+            
             for (level, rules) in self.rule_groups.iter().enumerate() {
-                // Try each rule group in the whole tree
+                let _rule_group_span = span!(Level::TRACE, "Rule Group", level).entered();
 
+                // Try each rule group in the whole tree
                 while zipper.go_next_dirty(level).is_some() {
                     let subtree = zipper.inner.focus();
 
                     // Choose one transformation from all applicable rules at this level
                     let selected = {
-                        let applicable = &mut rules.iter().filter_map(|rule| {
+                        let applicable = &mut rules.iter().enumerate().filter_map(|(index, rule)| {
+                            event!(name: "Rule Check", Level::TRACE, rule_index = index);
                             let update = rule.apply_into_update(subtree, &zipper.meta)?;
+                            event!(name: "Rule Check Pass", Level::TRACE, rule_index = index);
                             Some((rule, update))
                         });
                         one_or_select(self.selector, subtree, applicable)
                     };
 
                     if let Some(mut update) = selected {
+                        event!(Level::TRACE, "Applying Rule");
                         // Replace the current subtree, invalidating subtree node states
                         zipper.inner.replace_focus(update.new_subtree);
 
@@ -196,10 +204,12 @@ where
                             // This must unfortunately throw all node states away,
                             // since the `transform` command may redefine the whole tree
                             zipper.inner.replace_focus(new_tree);
+                            event!(Level::TRACE, "Throwaway State");
                         }
 
                         continue 'main;
                     } else {
+                        event!(Level::TRACE, "No Rule Applicable");
                         zipper.set_dirty_from(level + 1);
                     }
                 }
@@ -259,6 +269,9 @@ impl<'events, T: Uniplate, M> EngineZipper<'events, T, M> {
     /// That node may be the current one if it is dirty.
     /// If no such node exists, go to the root and return `None`.
     pub fn go_next_dirty(&mut self, level: usize) -> Option<()> {
+        let span = span!(Level::TRACE, "get_next_dirty", level);
+        let _guard = span.enter();
+
         if self.inner.tag().is_dirty(level) {
             return Some(());
         }
@@ -266,14 +279,17 @@ impl<'events, T: Uniplate, M> EngineZipper<'events, T, M> {
         self.go_down()
             .and_then(|_| {
                 // go right until we find a dirty child, if it exists.
+                event!(Level::TRACE, "Entered subtree");
                 loop {
                     if self.inner.tag().is_dirty(level) {
                         return Some(());
                     } else if self.go_right().is_none() {
                         // all children are clean
                         self.go_up();
+                        event!(Level::TRACE, "Exit Subtree");
                         return None;
                     }
+                    event!(Level::TRACE, "Get Right Subling");
                 }
             })
             .or_else(|| {
@@ -281,6 +297,7 @@ impl<'events, T: Uniplate, M> EngineZipper<'events, T, M> {
                 // Go right then up until we find a dirty node or reach the root
                 loop {
                     if self.go_right().is_some() {
+                        event!(Level::TRACE, "Get Right Subling");
                         if self.inner.tag().is_dirty(level) {
                             return Some(());
                         }
@@ -288,6 +305,7 @@ impl<'events, T: Uniplate, M> EngineZipper<'events, T, M> {
                         // Reached the root without finding a dirty node
                         return None;
                     }
+                    event!(Level::TRACE, "Exit Subtree");
                 }
             })
     }

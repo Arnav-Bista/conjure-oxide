@@ -1727,6 +1727,8 @@ dependencies = [
  "criterion",
  "multipeek",
  "rand",
+ "tracing",
+ "tracing-subscriber",
  "uniplate",
 ]
 

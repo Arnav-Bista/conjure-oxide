@@ -4,6 +4,19 @@
 use tree_morph::prelude::*;
 use uniplate::Uniplate;
 
+/// Initialize tracing subscriber for tests to see trace output
+fn init_tracing() {
+    use std::sync::Once;
+    static INIT: Once = Once::new();
+
+    INIT.call_once(|| {
+        tracing_subscriber::fmt()
+            .with_max_level(tracing::Level::TRACE)
+            .with_test_writer()
+            .init();
+    });
+}
+
 /// A simple language of two literals and a wrapper
 #[derive(Debug, Clone, PartialEq, Eq, Uniplate)]
 #[uniplate()]
@@ -33,6 +46,7 @@ fn rule_a_to_b(_: &mut Commands<Expr, ()>, expr: &Expr, _: &()) -> Option<Expr> 
 
 #[test]
 fn same_group() {
+    init_tracing();
     // If the rules are in the same group, unwrap_a will apply higher in the tree
 
     // [a]
@@ -50,6 +64,7 @@ fn same_group() {
 
 #[test]
 fn a_to_b_first() {
+    init_tracing();
     // a_to_b is in a higher group than unwrap_a, so it will be applied first to the lower expression
 
     // [a]

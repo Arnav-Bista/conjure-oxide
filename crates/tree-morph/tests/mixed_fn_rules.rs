@@ -1,6 +1,19 @@
 use tree_morph::prelude::*;
 use uniplate::Uniplate;
 
+/// Initialize tracing subscriber for tests to see trace output
+fn init_tracing() {
+    use std::sync::Once;
+    static INIT: Once = Once::new();
+
+    INIT.call_once(|| {
+        tracing_subscriber::fmt()
+            .with_max_level(tracing::Level::TRACE)
+            .with_test_writer()
+            .init();
+    });
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Uniplate)]
 #[uniplate()]
 enum Expr {
@@ -19,6 +32,7 @@ fn rule_b_to_c(_: &mut Commands<Expr, ()>, expr: &Expr, _: &()) -> Option<Expr> 
 
 #[test]
 fn closure_rules() {
+    init_tracing();
     let expr = Expr::A;
 
     let engine = EngineBuilder::new()

@@ -3,6 +3,19 @@
 use tree_morph::prelude::*;
 use uniplate::Uniplate;
 
+/// Initialize tracing subscriber for tests to see trace output
+fn init_tracing() {
+    use std::sync::Once;
+    static INIT: Once = Once::new();
+
+    INIT.call_once(|| {
+        tracing_subscriber::fmt()
+            .with_max_level(tracing::Level::TRACE)
+            .with_test_writer()
+            .init();
+    });
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Uniplate)]
 #[uniplate()]
 enum Expr {
@@ -51,6 +64,7 @@ struct Meta {
 
 #[test]
 fn single_var() {
+    init_tracing();
     let expr = Expr::Val(42);
     let meta = Meta {
         num_applications: 0,
@@ -67,6 +81,7 @@ fn single_var() {
 
 #[test]
 fn add_zero() {
+    init_tracing();
     let expr = Expr::Add(Box::new(Expr::Val(0)), Box::new(Expr::Val(42)));
     let meta = Meta {
         num_applications: 0,
@@ -83,6 +98,7 @@ fn add_zero() {
 
 #[test]
 fn mul_one() {
+    init_tracing();
     let expr = Expr::Mul(Box::new(Expr::Val(1)), Box::new(Expr::Val(42)));
     let meta = Meta {
         num_applications: 0,
@@ -99,6 +115,7 @@ fn mul_one() {
 
 #[test]
 fn eval_add() {
+    init_tracing();
     let expr = Expr::Add(Box::new(Expr::Val(1)), Box::new(Expr::Val(2)));
     let meta = Meta {
         num_applications: 0,
@@ -115,6 +132,8 @@ fn eval_add() {
 
 #[test]
 fn eval_nested() {
+    init_tracing(); // Initialize tracing to see output
+
     let expr = Expr::Mul(
         Box::new(Expr::Add(Box::new(Expr::Val(1)), Box::new(Expr::Val(2)))),
         Box::new(Expr::Val(3)),

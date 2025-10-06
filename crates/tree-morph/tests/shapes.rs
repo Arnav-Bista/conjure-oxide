@@ -3,6 +3,19 @@
 use tree_morph::{helpers::select_panic, prelude::*};
 use uniplate::Uniplate;
 
+/// Initialize tracing subscriber for tests to see trace output
+fn init_tracing() {
+    use std::sync::Once;
+    static INIT: Once = Once::new();
+
+    INIT.call_once(|| {
+        tracing_subscriber::fmt()
+            .with_max_level(tracing::Level::TRACE)
+            .with_test_writer()
+            .init();
+    });
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Uniplate)]
 #[uniplate()]
 enum Shape {
@@ -35,6 +48,7 @@ fn circ_circ_tri_to_sqr(_: &mut Commands<Shape, ()>, expr: &Shape, _: &()) -> Op
 
 #[test]
 fn circ_tri() {
+    init_tracing();
     // O(/\)
     let expr = Shape::Circle(Box::new(Shape::Triangle));
 
@@ -49,6 +63,7 @@ fn circ_tri() {
 
 #[test]
 fn circ_circ_tri() {
+    init_tracing();
     // O(O(/\))
     let expr = Shape::Circle(Box::new(Shape::Circle(Box::new(Shape::Triangle))));
 
@@ -63,6 +78,7 @@ fn circ_circ_tri() {
 
 #[test]
 fn shape_higher_priority() {
+    init_tracing();
     // O(O(/\))
     let expr = Shape::Circle(Box::new(Shape::Circle(Box::new(Shape::Triangle))));
 
@@ -80,6 +96,7 @@ fn shape_higher_priority() {
 #[should_panic]
 #[test]
 fn shape_multiple_rules_panic() {
+    init_tracing();
     // O(O(/\))
     let expr = Shape::Circle(Box::new(Shape::Circle(Box::new(Shape::Triangle))));
 

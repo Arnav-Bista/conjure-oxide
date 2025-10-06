@@ -1,5 +1,6 @@
 use uniplate::Uniplate;
 
+#[derive(Debug)]
 pub(crate) struct EventHandlers<T: Uniplate, M> {
     on_enter: Vec<fn(&T, &mut M)>,
     on_exit: Vec<fn(&T, &mut M)>,
