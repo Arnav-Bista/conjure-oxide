@@ -5,6 +5,7 @@
 use crate::events::EventHandlers;
 use crate::helpers::{SelectorFn, one_or_select};
 use crate::prelude::Rule;
+use crate::stats::Statistics;
 
 use tracing::{Level, event, span};
 use uniplate::{Uniplate, tagged_zipper::TaggedZipper};
@@ -165,7 +166,7 @@ where
         let _span = span!(Level::TRACE, "morph").entered();
 
         // Holds the other mutable reference to the metadata
-        let mut zipper = EngineZipper::new(tree, meta, &self.event_handlers);
+        let mut zipper = EngineZipper::new(tree, meta, &self.event_handlers, Statistics::new());
 
         'main: loop {
             // Return here after every successful rule application
@@ -180,9 +181,9 @@ where
                     // Choose one transformation from all applicable rules at this level
                     let selected = {
                         let applicable = &mut rules.iter().enumerate().filter_map(|(index, rule)| {
-                            event!(name: "Rule Check", Level::TRACE, rule_index = index);
+                            zipper.statistics.rule_check(index);
                             let update = rule.apply_into_update(subtree, &zipper.meta)?;
-                            event!(name: "Rule Check Pass", Level::TRACE, rule_index = index);
+                            zipper.statistics.rule_applied(index);
                             Some((rule, update))
                         });
                         one_or_select(self.selector, subtree, applicable)
@@ -218,7 +219,7 @@ where
             // All rules have been tried with no more changes
             break;
         }
-
+        println!("{}", zipper.statistics);
         zipper.into()
     }
 }
@@ -253,15 +254,17 @@ impl EngineNodeState {
 struct EngineZipper<'events, T: Uniplate, M> {
     inner: TaggedZipper<T, EngineNodeState, fn(&T) -> EngineNodeState>,
     event_handlers: &'events EventHandlers<T, M>,
+    statistics: Statistics,
     meta: M,
 }
 
 impl<'events, T: Uniplate, M> EngineZipper<'events, T, M> {
-    pub fn new(tree: T, meta: M, event_handlers: &'events EventHandlers<T, M>) -> Self {
+    pub fn new(tree: T, meta: M, event_handlers: &'events EventHandlers<T, M>, statistics: Statistics) -> Self {
         EngineZipper {
             inner: TaggedZipper::new(tree, EngineNodeState::new),
             event_handlers,
             meta,
+            statistics
         }
     }
 
@@ -286,10 +289,10 @@ impl<'events, T: Uniplate, M> EngineZipper<'events, T, M> {
                     } else if self.go_right().is_none() {
                         // all children are clean
                         self.go_up();
-                        event!(Level::TRACE, "Exit Subtree");
+                        event!(Level::TRACE, "Exit Sibling");
                         return None;
                     }
-                    event!(Level::TRACE, "Get Right Subling");
+                    event!(Level::TRACE, "Get Right Sibling");
                 }
             })
             .or_else(|| {
@@ -297,7 +300,7 @@ impl<'events, T: Uniplate, M> EngineZipper<'events, T, M> {
                 // Go right then up until we find a dirty node or reach the root
                 loop {
                     if self.go_right().is_some() {
-                        event!(Level::TRACE, "Get Right Subling");
+                        event!(Level::TRACE, "Get Right Sibling");
                         if self.inner.tag().is_dirty(level) {
                             return Some(());
                         }
@@ -305,7 +308,7 @@ impl<'events, T: Uniplate, M> EngineZipper<'events, T, M> {
                         // Reached the root without finding a dirty node
                         return None;
                     }
-                    event!(Level::TRACE, "Exit Subtree");
+                    event!(Level::TRACE, "Exit Sibtree");
                 }
             })
     }

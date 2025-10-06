@@ -8,6 +8,7 @@ mod events;
 pub mod helpers;
 pub mod rule;
 mod update;
+pub(crate) mod stats;
 
 /// Re-exported functions and types for convenience.
 pub mod prelude {

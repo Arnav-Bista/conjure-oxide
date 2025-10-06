@@ -76,7 +76,7 @@ fn left_branch_clean() {
     // Top Level is +
     // Left Branch has two Nested Subtractions which do not have any rules
     // So atoms
-    // Right brigh has Mul and Add which DO have rules
+    // Right branch has Mul and Add which DO have rules
     let expr = Expr::Add(
         Box::new(Expr::Sub(
             Box::new(Expr::Val(1)),
