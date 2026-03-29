@@ -32,11 +32,11 @@ fn remove_dimension_from_matrix_indexing(expr: &Expr, _: &SymbolTable) -> Applic
         .ok_or(RuleNotApplicable)?;
 
     for e in es.iter_mut() {
-        *e = Expr::SafeIndex(Metadata::new(), Moo::new(e.clone()), inner_indices.clone());
+        *e = Expr::SafeIndex(Box::new(Metadata::new()), Moo::new(e.clone()), inner_indices.clone());
     }
 
     Ok(Reduction::pure(Expr::SafeIndex(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(into_matrix_expr![es;index_domain]),
         outer_indices,
     )))

@@ -101,7 +101,7 @@ impl Reference {
 
 impl From<Reference> for Expression {
     fn from(value: Reference) -> Self {
-        Expression::Atomic(Metadata::new(), value.into())
+        Expression::Atomic(Box::new(Metadata::new()), value.into())
     }
 }
 

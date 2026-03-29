@@ -76,7 +76,7 @@ pub fn run_partial_evaluator(expr: &Expr) -> ApplicationResult {
 
                 // if the declaration's domain is a subset of domain, expr is always true.
                 if &intersection == decl_domain.as_ref() {
-                    Ok(Reduction::pure(Expr::Atomic(Metadata::new(), true.into())))
+                    Ok(Reduction::pure(Expr::Atomic(Box::new(Metadata::new()), true.into())))
                 }
                 // if no elements of declaration's domain are in the domain (i.e. they have no
                 // intersection), expr is always false.
@@ -88,7 +88,7 @@ pub fn run_partial_evaluator(expr: &Expr) -> ApplicationResult {
                 else if let Ok(values_in_domain) = intersection.values_i32()
                     && values_in_domain.is_empty()
                 {
-                    Ok(Reduction::pure(Expr::Atomic(Metadata::new(), false.into())))
+                    Ok(Reduction::pure(Expr::Atomic(Box::new(Metadata::new()), false.into())))
                 } else {
                     Err(RuleNotApplicable)
                 }
@@ -100,9 +100,9 @@ pub fn run_partial_evaluator(expr: &Expr) -> ApplicationResult {
                     .ok()
                     .ok_or(RuleNotApplicable)?
                 {
-                    Ok(Reduction::pure(Expr::Atomic(Metadata::new(), true.into())))
+                    Ok(Reduction::pure(Expr::Atomic(Box::new(Metadata::new()), true.into())))
                 } else {
-                    Ok(Reduction::pure(Expr::Atomic(Metadata::new(), false.into())))
+                    Ok(Reduction::pure(Expr::Atomic(Box::new(Metadata::new()), false.into())))
                 }
             } else {
                 Err(RuleNotApplicable)
@@ -353,7 +353,7 @@ pub fn run_partial_evaluator(expr: &Expr) -> ApplicationResult {
                 Err(RuleNotApplicable)
             } else {
                 Ok(Reduction::pure(Expr::And(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     Moo::new(into_matrix_expr![new_vec]),
                 )))
             }
@@ -379,7 +379,7 @@ pub fn run_partial_evaluator(expr: &Expr) -> ApplicationResult {
                         if !x {
                             // false
                             return Ok(Reduction::pure(Expr::Root(
-                                Metadata::new(),
+                                Box::new(Metadata::new()),
                                 vec![Expr::Atomic(
                                     Default::default(),
                                     Atom::Literal(Lit::Bool(false)),
@@ -407,7 +407,7 @@ pub fn run_partial_evaluator(expr: &Expr) -> ApplicationResult {
                 if new_vec.is_empty() {
                     new_vec.push(true.into());
                 }
-                Ok(Reduction::pure(Expr::Root(Metadata::new(), new_vec)))
+                Ok(Reduction::pure(Expr::Root(Box::new(Metadata::new()), new_vec)))
             }
         }
         Expr::Imply(_m, x, y) => {
@@ -417,7 +417,7 @@ pub fn run_partial_evaluator(expr: &Expr) -> ApplicationResult {
                     return Ok(Reduction::pure(Moo::unwrap_or_clone(y.clone())));
                 } else {
                     // (false) -> y ~~> true
-                    return Ok(Reduction::pure(Expr::Atomic(Metadata::new(), true.into())));
+                    return Ok(Reduction::pure(Expr::Atomic(Box::new(Metadata::new()), true.into())));
                 }
             };
 
@@ -440,7 +440,7 @@ pub fn run_partial_evaluator(expr: &Expr) -> ApplicationResult {
                     return Ok(Reduction::pure(Moo::unwrap_or_clone(y.clone())));
                 } else {
                     // (false) <-> y ~~> !y
-                    return Ok(Reduction::pure(Expr::Not(Metadata::new(), y.clone())));
+                    return Ok(Reduction::pure(Expr::Not(Box::new(Metadata::new()), y.clone())));
                 }
             };
             if let Expr::Atomic(_, Atom::Literal(Lit::Bool(y))) = y.as_ref() {
@@ -449,7 +449,7 @@ pub fn run_partial_evaluator(expr: &Expr) -> ApplicationResult {
                     return Ok(Reduction::pure(Moo::unwrap_or_clone(x.clone())));
                 } else {
                     // x <-> (false) ~~> !x
-                    return Ok(Reduction::pure(Expr::Not(Metadata::new(), x.clone())));
+                    return Ok(Reduction::pure(Expr::Not(Box::new(Metadata::new()), x.clone())));
                 }
             };
 

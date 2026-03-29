@@ -111,7 +111,7 @@ impl Representation for TupleToAtom {
                 (
                     name,
                     Expression::Atomic(
-                        Metadata::new(),
+                        Box::new(Metadata::new()),
                         Atom::Reference(conjure_cp::ast::Reference::new(decl)),
                     ),
                 )

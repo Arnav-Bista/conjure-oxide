@@ -176,7 +176,7 @@ pub fn parse_essence_with_context_and_map(
                 let Some(expr) = parse_expression(&mut ctx, inner)? else {
                     continue;
                 };
-                let dominance = Expression::DominanceRelation(Metadata::new(), Moo::new(expr));
+                let dominance = Expression::DominanceRelation(Box::new(Metadata::new()), Moo::new(expr));
                 if model.dominance.is_some() {
                     ctx.record_error(RecoverableParseError::new(
                         "Duplicate dominance relation".to_string(),
@@ -255,31 +255,31 @@ mod test {
         assert_eq!(constraints.len(), 2);
 
         let c1 = constraints[0].clone();
-        let x_e = Expression::Atomic(Metadata::new(), Atom::new_ref(x));
-        let y_e = Expression::Atomic(Metadata::new(), Atom::new_ref(y));
-        let z_e = Expression::Atomic(Metadata::new(), Atom::new_ref(z));
+        let x_e = Expression::Atomic(Box::new(Metadata::new()), Atom::new_ref(x));
+        let y_e = Expression::Atomic(Box::new(Metadata::new()), Atom::new_ref(y));
+        let z_e = Expression::Atomic(Box::new(Metadata::new()), Atom::new_ref(z));
         assert_eq!(
             c1,
             Expression::Eq(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Moo::new(Expression::Sum(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     Moo::new(matrix_expr!(
                         Expression::Sum(
-                            Metadata::new(),
+                            Box::new(Metadata::new()),
                             Moo::new(matrix_expr!(x_e.clone(), y_e.clone()))
                         ),
                         z_e
                     ))
                 )),
-                Moo::new(Expression::Atomic(Metadata::new(), 4.into()))
+                Moo::new(Expression::Atomic(Box::new(Metadata::new()), 4.into()))
             )
         );
 
         let c2 = constraints[1].clone();
         assert_eq!(
             c2,
-            Expression::Geq(Metadata::new(), Moo::new(x_e), Moo::new(y_e))
+            Expression::Geq(Box::new(Metadata::new()), Moo::new(x_e), Moo::new(y_e))
         );
     }
 

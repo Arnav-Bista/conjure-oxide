@@ -57,7 +57,7 @@ fn parse_dominance_relation(
     };
 
     Ok(Some(Expression::DominanceRelation(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(inner),
     )))
 }
@@ -157,12 +157,12 @@ fn parse_list_combining_expression(
     };
 
     match operator_str {
-        "and" => Ok(Some(Expression::And(Metadata::new(), Moo::new(inner)))),
-        "or" => Ok(Some(Expression::Or(Metadata::new(), Moo::new(inner)))),
-        "sum" => Ok(Some(Expression::Sum(Metadata::new(), Moo::new(inner)))),
-        "product" => Ok(Some(Expression::Product(Metadata::new(), Moo::new(inner)))),
-        "min" => Ok(Some(Expression::Min(Metadata::new(), Moo::new(inner)))),
-        "max" => Ok(Some(Expression::Max(Metadata::new(), Moo::new(inner)))),
+        "and" => Ok(Some(Expression::And(Box::new(Metadata::new()), Moo::new(inner)))),
+        "or" => Ok(Some(Expression::Or(Box::new(Metadata::new()), Moo::new(inner)))),
+        "sum" => Ok(Some(Expression::Sum(Box::new(Metadata::new()), Moo::new(inner)))),
+        "product" => Ok(Some(Expression::Product(Box::new(Metadata::new()), Moo::new(inner)))),
+        "min" => Ok(Some(Expression::Min(Box::new(Metadata::new()), Moo::new(inner)))),
+        "max" => Ok(Some(Expression::Max(Box::new(Metadata::new()), Moo::new(inner)))),
         _ => Err(FatalParseError::internal_error(
             format!("Invalid operator: '{operator_str}'"),
             Some(operator_node.range()),
@@ -178,7 +178,7 @@ fn parse_all_diff_comparison(
         return Ok(None);
     };
 
-    Ok(Some(Expression::AllDiff(Metadata::new(), Moo::new(inner))))
+    Ok(Some(Expression::AllDiff(Box::new(Metadata::new()), Moo::new(inner))))
 }
 
 fn parse_unary_expression(
@@ -189,10 +189,10 @@ fn parse_unary_expression(
         return Ok(None);
     };
     match node.kind() {
-        "negative_expr" => Ok(Some(Expression::Neg(Metadata::new(), Moo::new(inner)))),
-        "abs_value" => Ok(Some(Expression::Abs(Metadata::new(), Moo::new(inner)))),
-        "not_expr" => Ok(Some(Expression::Not(Metadata::new(), Moo::new(inner)))),
-        "toInt_expr" => Ok(Some(Expression::ToInt(Metadata::new(), Moo::new(inner)))),
+        "negative_expr" => Ok(Some(Expression::Neg(Box::new(Metadata::new()), Moo::new(inner)))),
+        "abs_value" => Ok(Some(Expression::Abs(Box::new(Metadata::new()), Moo::new(inner)))),
+        "not_expr" => Ok(Some(Expression::Not(Box::new(Metadata::new()), Moo::new(inner)))),
+        "toInt_expr" => Ok(Some(Expression::ToInt(Box::new(Metadata::new()), Moo::new(inner)))),
         "sub_bool_expr" | "sub_arith_expr" => Ok(Some(inner)),
         _ => Err(FatalParseError::internal_error(
             format!("Unrecognised unary operation: '{}'", node.kind()),
@@ -224,35 +224,35 @@ pub fn parse_binary_expression(
         // This is expected by rules which will modify the terms of the sum expression
         // (e.g. by partially evaluating them).
         "+" => Ok(Some(Expression::Sum(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(matrix_expr![left, right; domain_int!(1..)]),
         ))),
         "-" => Ok(Some(Expression::Minus(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(left),
             Moo::new(right),
         ))),
         "*" => Ok(Some(Expression::Product(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(matrix_expr![left, right; domain_int!(1..)]),
         ))),
         "/\\" => Ok(Some(Expression::And(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(matrix_expr![left, right; domain_int!(1..)]),
         ))),
         "\\/" => Ok(Some(Expression::Or(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(matrix_expr![left, right; domain_int!(1..)]),
         ))),
         "**" => Ok(Some(Expression::UnsafePow(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(left),
             Moo::new(right),
         ))),
         "/" => {
             //TODO: add checks for if division is safe or not
             Ok(Some(Expression::UnsafeDiv(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Moo::new(left),
                 Moo::new(right),
             )))
@@ -260,100 +260,100 @@ pub fn parse_binary_expression(
         "%" => {
             //TODO: add checks for if mod is safe or not
             Ok(Some(Expression::UnsafeMod(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Moo::new(left),
                 Moo::new(right),
             )))
         }
         "=" => Ok(Some(Expression::Eq(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(left),
             Moo::new(right),
         ))),
         "!=" => Ok(Some(Expression::Neq(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(left),
             Moo::new(right),
         ))),
         "<=" => Ok(Some(Expression::Leq(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(left),
             Moo::new(right),
         ))),
         ">=" => Ok(Some(Expression::Geq(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(left),
             Moo::new(right),
         ))),
         "<" => Ok(Some(Expression::Lt(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(left),
             Moo::new(right),
         ))),
         ">" => Ok(Some(Expression::Gt(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(left),
             Moo::new(right),
         ))),
         "->" => Ok(Some(Expression::Imply(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(left),
             Moo::new(right),
         ))),
         "<->" => Ok(Some(Expression::Iff(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(left),
             Moo::new(right),
         ))),
         "<lex" => Ok(Some(Expression::LexLt(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(left),
             Moo::new(right),
         ))),
         ">lex" => Ok(Some(Expression::LexGt(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(left),
             Moo::new(right),
         ))),
         "<=lex" => Ok(Some(Expression::LexLeq(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(left),
             Moo::new(right),
         ))),
         ">=lex" => Ok(Some(Expression::LexGeq(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(left),
             Moo::new(right),
         ))),
         "in" => Ok(Some(Expression::In(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(left),
             Moo::new(right),
         ))),
         "subset" => Ok(Some(Expression::Subset(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(left),
             Moo::new(right),
         ))),
         "subsetEq" => Ok(Some(Expression::SubsetEq(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(left),
             Moo::new(right),
         ))),
         "supset" => Ok(Some(Expression::Supset(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(left),
             Moo::new(right),
         ))),
         "supsetEq" => Ok(Some(Expression::SupsetEq(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(left),
             Moo::new(right),
         ))),
         "union" => {
             description = "set union: combines the elements from both operands".to_string();
             Ok(Some(Expression::Union(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Moo::new(left),
                 Moo::new(right),
             )))
@@ -362,7 +362,7 @@ pub fn parse_binary_expression(
             description =
                 "set intersection: keeps only elements common to both operands".to_string();
             Ok(Some(Expression::Intersect(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Moo::new(left),
                 Moo::new(right),
             )))

@@ -85,7 +85,7 @@ fn collect_like_terms(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
 
     let mut new_exprs = vec![];
     for (re, coefficient) in weighted_terms {
-        let atom = Expr::Atomic(Metadata::new(), Atom::Reference(re));
+        let atom = Expr::Atomic(Box::new(Metadata::new()), Atom::Reference(re));
         new_exprs.push(essence_expr!(&atom * &coefficient));
     }
 

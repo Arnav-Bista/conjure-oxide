@@ -27,7 +27,7 @@ fn int_domain_to_expr(subject: Expr, ranges: &Vec<Range<i32>>) -> Expr {
         }
     }
 
-    Expr::Or(Metadata::new(), Moo::new(into_matrix_expr!(output)))
+    Expr::Or(Box::new(Metadata::new()), Moo::new(into_matrix_expr!(output)))
 }
 
 /// This function confirms that all of the input expressions are log SATInts, and returns vectors for each input of their bits
@@ -137,7 +137,7 @@ fn integer_decision_representation_direct(expr: &Expr, symbols: &SymbolTable) ->
         .collect();
 
     let cnf_int = Expr::SATInt(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         SATIntEncoding::Direct,
         Moo::new(into_matrix_expr!(bits.clone())),
         (min, max),
@@ -152,8 +152,8 @@ fn integer_decision_representation_direct(expr: &Expr, symbols: &SymbolTable) ->
         for i in 0..bits.len() {
             for j in i + 1..bits.len() {
                 clauses.push(conjure_cp::ast::CnfClause::new(vec![
-                    Expr::Not(Metadata::new(), Moo::new(bits[i].clone())),
-                    Expr::Not(Metadata::new(), Moo::new(bits[j].clone())),
+                    Expr::Not(Box::new(Metadata::new()), Moo::new(bits[i].clone())),
+                    Expr::Not(Box::new(Metadata::new()), Moo::new(bits[j].clone())),
                 ]));
             }
         }
@@ -207,7 +207,7 @@ fn integer_decision_representation_order(expr: &Expr, symbols: &SymbolTable) -> 
         .collect();
 
     let cnf_int = Expr::SATInt(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         SATIntEncoding::Order,
         Moo::new(into_matrix_expr!(bits.clone())),
         (min, max),
@@ -221,7 +221,7 @@ fn integer_decision_representation_order(expr: &Expr, symbols: &SymbolTable) -> 
         let mut clauses = vec![];
         for i in 1..bits.len() {
             clauses.push(conjure_cp::ast::CnfClause::new(vec![
-                Expr::Not(Metadata::new(), Moo::new(bits[i].clone())),
+                Expr::Not(Box::new(Metadata::new()), Moo::new(bits[i].clone())),
                 bits[i - 1].clone(),
             ]));
         }
@@ -288,7 +288,7 @@ fn integer_decision_representation_log(expr: &Expr, symbols: &SymbolTable) -> Ap
         .collect();
 
     let cnf_int = Expr::SATInt(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         SATIntEncoding::Log,
         Moo::new(into_matrix_expr!(bits)),
         (min, max),
@@ -333,14 +333,14 @@ fn literal_cnf_int(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
 
     for _ in 0..bit_count {
         binary_encoding.push(Expr::Atomic(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Atom::Literal(Literal::Bool((value_mut & 1) != 0)),
         ));
         value_mut >>= 1;
     }
 
     Ok(Reduction::pure(Expr::SATInt(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         SATIntEncoding::Log,
         Moo::new(into_matrix_expr!(binary_encoding)),
         (value, value),

@@ -23,7 +23,7 @@ pub fn parse_atom(
             let ident = field!(node, "identifier");
             let name_str = &ctx.source_code[ident.start_byte()..ident.end_byte()];
             Ok(Some(Expression::Metavar(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Ustr::from(name_str),
             )))
         }
@@ -31,7 +31,7 @@ pub fn parse_atom(
             let Some(var) = parse_variable(ctx, node)? else {
                 return Ok(None);
             };
-            Ok(Some(Expression::Atomic(Metadata::new(), var)))
+            Ok(Some(Expression::Atomic(Box::new(Metadata::new()), var)))
         }
         "from_solution" => {
             if ctx.root.kind() != "dominance_relation" {
@@ -46,7 +46,7 @@ pub fn parse_atom(
             };
 
             Ok(Some(Expression::FromSolution(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Moo::new(inner),
             )))
         }
@@ -55,7 +55,7 @@ pub fn parse_atom(
                 return Ok(None);
             };
             Ok(Some(Expression::Atomic(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Atom::Literal(lit),
             )))
         }
@@ -63,7 +63,7 @@ pub fn parse_atom(
             let Some(abs) = parse_abstract(ctx, node)? else {
                 return Ok(None);
             };
-            Ok(Some(Expression::AbstractLiteral(Metadata::new(), abs)))
+            Ok(Some(Expression::AbstractLiteral(Box::new(Metadata::new()), abs)))
         }
         "flatten" => parse_flatten(ctx, node),
         "table" | "negative_table" => parse_table(ctx, node),
@@ -92,15 +92,15 @@ fn parse_flatten(
         let depth_node = field!(node, "depth");
         let depth = parse_int(ctx, &depth_node)?;
         let depth_expression =
-            Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(depth)));
+            Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(depth)));
         Ok(Some(Expression::Flatten(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Some(Moo::new(depth_expression)),
             Moo::new(expr),
         )))
     } else {
         Ok(Some(Expression::Flatten(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             None,
             Moo::new(expr),
         )))
@@ -126,12 +126,12 @@ fn parse_table(ctx: &mut ParseContext, node: &Node) -> Result<Option<Expression>
 
     match node.kind() {
         "table" => Ok(Some(Expression::Table(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(variables),
             Moo::new(rows),
         ))),
         "negative_table" => Ok(Some(Expression::NegativeTable(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(variables),
             Moo::new(rows),
         ))),
@@ -166,7 +166,7 @@ fn parse_index_or_slice(
     if has_null_idx {
         // It's a slice
         Ok(Some(Expression::UnsafeSlice(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(collection),
             indices,
         )))
@@ -174,7 +174,7 @@ fn parse_index_or_slice(
         // It's an index
         let idx_exprs: Vec<Expression> = indices.into_iter().map(|idx| idx.unwrap()).collect();
         Ok(Some(Expression::UnsafeIndex(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(collection),
             idx_exprs,
         )))

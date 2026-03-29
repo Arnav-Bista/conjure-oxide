@@ -24,11 +24,11 @@ fn flatten_indomain(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
     let new_expr = match dom.as_ref() {
         // Bool values are always in the bool domain
         GroundDomain::Bool => Ok(Expr::Atomic(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Atom::Literal(Literal::Bool(true)),
         )),
         GroundDomain::Empty(_) => Ok(Expr::Atomic(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Atom::Literal(Literal::Bool(false)),
         )),
         GroundDomain::Int(ranges) => {
@@ -36,36 +36,36 @@ fn flatten_indomain(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
                 .iter()
                 .map(|range| match range {
                     Range::Single(n) => {
-                        let eq = Expr::Atomic(Metadata::new(), Atom::Literal(Literal::Int(*n)));
-                        Expr::Eq(Metadata::new(), inner.clone(), Moo::new(eq))
+                        let eq = Expr::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(*n)));
+                        Expr::Eq(Box::new(Metadata::new()), inner.clone(), Moo::new(eq))
                     }
                     Range::Bounded(l, r) => {
-                        let l_expr = Expr::Atomic(Metadata::new(), Atom::Literal(Literal::Int(*l)));
-                        let r_expr = Expr::Atomic(Metadata::new(), Atom::Literal(Literal::Int(*r)));
+                        let l_expr = Expr::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(*l)));
+                        let r_expr = Expr::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(*r)));
                         let lit = AbstractLiteral::matrix_implied_indices(vec![
-                            Expr::Geq(Metadata::new(), inner.clone(), Moo::new(l_expr)),
-                            Expr::Leq(Metadata::new(), inner.clone(), Moo::new(r_expr)),
+                            Expr::Geq(Box::new(Metadata::new()), inner.clone(), Moo::new(l_expr)),
+                            Expr::Leq(Box::new(Metadata::new()), inner.clone(), Moo::new(r_expr)),
                         ]);
                         Expr::And(
-                            Metadata::new(),
-                            Moo::new(Expr::AbstractLiteral(Metadata::new(), lit)),
+                            Box::new(Metadata::new()),
+                            Moo::new(Expr::AbstractLiteral(Box::new(Metadata::new()), lit)),
                         )
                     }
                     Range::UnboundedL(r) => {
-                        let bound = Expr::Atomic(Metadata::new(), Atom::Literal(Literal::Int(*r)));
-                        Expr::Leq(Metadata::new(), inner.clone(), Moo::new(bound))
+                        let bound = Expr::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(*r)));
+                        Expr::Leq(Box::new(Metadata::new()), inner.clone(), Moo::new(bound))
                     }
                     Range::UnboundedR(l) => {
-                        let bound = Expr::Atomic(Metadata::new(), Atom::Literal(Literal::Int(*l)));
-                        Expr::Geq(Metadata::new(), inner.clone(), Moo::new(bound))
+                        let bound = Expr::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(*l)));
+                        Expr::Geq(Box::new(Metadata::new()), inner.clone(), Moo::new(bound))
                     }
                     Range::Unbounded => bug!("integer domains should not have unbounded ranges"),
                 })
                 .collect();
             Ok(Expr::Or(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Moo::new(Expr::AbstractLiteral(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     AbstractLiteral::matrix_implied_indices(elements),
                 )),
             ))
@@ -104,8 +104,8 @@ fn flatten_matrix_eq_neq(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
                 .map(|lit| Atom::Literal(lit).into())
                 .collect();
             (
-                Expression::UnsafeIndex(Metadata::new(), a.clone(), idx_vec.clone()),
-                Expression::UnsafeIndex(Metadata::new(), b.clone(), idx_vec),
+                Expression::UnsafeIndex(Box::new(Metadata::new()), a.clone(), idx_vec.clone()),
+                Expression::UnsafeIndex(Box::new(Metadata::new()), b.clone(), idx_vec),
             )
         });
 
@@ -113,9 +113,9 @@ fn flatten_matrix_eq_neq(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
         Expr::Eq(..) => {
             let eqs: Vec<_> = pairs.map(|(a, b)| essence_expr!(&a = &b)).collect();
             Expr::And(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Moo::new(Expr::AbstractLiteral(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     AbstractLiteral::matrix_implied_indices(eqs),
                 )),
             )
@@ -123,9 +123,9 @@ fn flatten_matrix_eq_neq(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
         Expr::Neq(..) => {
             let neqs: Vec<_> = pairs.map(|(a, b)| essence_expr!(&a != &b)).collect();
             Expr::Or(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Moo::new(Expr::AbstractLiteral(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     AbstractLiteral::matrix_implied_indices(neqs),
                 )),
             )
@@ -171,12 +171,12 @@ fn flatten_matrix_slice(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
         .map_err(|_| DomainError)?
         .map(|lit| {
             let mut new_idx = other_idxs.clone();
-            new_idx.insert(slice_dim, Expr::Atomic(Metadata::new(), Atom::Literal(lit)));
-            Expr::SafeIndex(Metadata::new(), m.clone(), new_idx)
+            new_idx.insert(slice_dim, Expr::Atomic(Box::new(Metadata::new()), Atom::Literal(lit)));
+            Expr::SafeIndex(Box::new(Metadata::new()), m.clone(), new_idx)
         })
         .collect();
     Ok(Reduction::pure(Expr::AbstractLiteral(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         AbstractLiteral::matrix_implied_indices(elements),
     )))
 }
@@ -210,7 +210,7 @@ fn matrix_ref_to_slice(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
             continue;
         }
 
-        let new_child = Expr::SafeSlice(Metadata::new(), Moo::new(child.clone()), vec![None]);
+        let new_child = Expr::SafeSlice(Box::new(Metadata::new()), Moo::new(child.clone()), vec![None]);
         return Ok(Reduction::pure(ctx(new_child)));
     }
 
@@ -236,7 +236,7 @@ fn unwrap_flatten_matrix_nonatomic(expr: &Expr, _: &SymbolTable) -> ApplicationR
     let elems: Vec<Expr> = matrix::enumerate_indices(index_domains)
         .map(|lits| {
             let idxs: Vec<Expr> = lits.into_iter().map(Into::into).collect();
-            Expr::SafeIndex(Metadata::new(), m.clone(), idxs)
+            Expr::SafeIndex(Box::new(Metadata::new()), m.clone(), idxs)
         })
         .collect();
 
@@ -248,7 +248,7 @@ fn unwrap_flatten_matrix_nonatomic(expr: &Expr, _: &SymbolTable) -> ApplicationR
             .expect("length of matrix should be able to be held in Int type"),
     )]);
     let new_expr = Expr::AbstractLiteral(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         AbstractLiteral::Matrix(elems, new_dom.into()),
     );
     Ok(Reduction::pure(new_expr))
@@ -290,9 +290,9 @@ fn unwrap_abstract_comprehension_sum(expr: &Expr, _: &SymbolTable) -> Applicatio
         .collect();
 
     let new_expr = Expr::Sum(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(Expr::AbstractLiteral(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             AbstractLiteral::matrix_implied_indices(list),
         )),
     );
@@ -330,9 +330,9 @@ fn unwrap_subseteq(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
         .collect::<Result<Vec<_>, _>>()?;
 
     let new_expr = Expr::And(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(Expr::AbstractLiteral(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             AbstractLiteral::matrix_implied_indices(memberships),
         )),
     );
@@ -378,9 +378,9 @@ fn unwrap_set_eq(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
         .collect::<Result<Vec<_>, _>>()?;
 
     let new_expr = Expr::And(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(Expr::AbstractLiteral(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             AbstractLiteral::matrix_implied_indices(memberships),
         )),
     );

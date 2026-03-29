@@ -287,7 +287,7 @@ fn list_elements(expr: &Expression) -> SolverResult<Vec<Expression>> {
                     ))
                 })?;
                 Ok(vals
-                    .map(|lit| Expression::Atomic(Metadata::new(), Atom::Literal(lit)))
+                    .map(|lit| Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(lit)))
                     .collect_vec())
             }
         })
@@ -298,7 +298,7 @@ fn list_elements(expr: &Expression) -> SolverResult<Vec<Expression>> {
     Ok(index_options
         .into_iter()
         .multi_cartesian_product()
-        .map(|concrete_idxs| Expression::SafeIndex(Metadata::new(), subject.clone(), concrete_idxs))
+        .map(|concrete_idxs| Expression::SafeIndex(Box::new(Metadata::new()), subject.clone(), concrete_idxs))
         .collect())
 }
 

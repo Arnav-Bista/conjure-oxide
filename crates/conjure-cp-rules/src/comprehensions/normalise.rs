@@ -82,12 +82,12 @@ fn merge_nested_ac_comprehensions_impl(expr: &Expr) -> Option<Expr> {
     merged.qualifiers = merged_qualifiers;
     merged.symbols = merged_symbols;
 
-    let merged_comprehension = Expr::Comprehension(Metadata::new(), Moo::new(merged));
+    let merged_comprehension = Expr::Comprehension(Box::new(Metadata::new()), Moo::new(merged));
     let wrapped = match ac_operator_kind {
-        ACOperatorKind::And => Expr::And(Metadata::new(), Moo::new(merged_comprehension)),
-        ACOperatorKind::Or => Expr::Or(Metadata::new(), Moo::new(merged_comprehension)),
-        ACOperatorKind::Sum => Expr::Sum(Metadata::new(), Moo::new(merged_comprehension)),
-        ACOperatorKind::Product => Expr::Product(Metadata::new(), Moo::new(merged_comprehension)),
+        ACOperatorKind::And => Expr::And(Box::new(Metadata::new()), Moo::new(merged_comprehension)),
+        ACOperatorKind::Or => Expr::Or(Box::new(Metadata::new()), Moo::new(merged_comprehension)),
+        ACOperatorKind::Sum => Expr::Sum(Box::new(Metadata::new()), Moo::new(merged_comprehension)),
+        ACOperatorKind::Product => Expr::Product(Box::new(Metadata::new()), Moo::new(merged_comprehension)),
     };
 
     Some(wrapped)

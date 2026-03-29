@@ -48,7 +48,7 @@ pub fn validate_order_int_operands(
 
             // add `true`s to start
             bits.extend(std::iter::repeat_n(
-                Expr::Atomic(Metadata::new(), Atom::Literal(Literal::Bool(true))),
+                Expr::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Bool(true))),
                 prefix_len,
             ));
 
@@ -56,7 +56,7 @@ pub fn validate_order_int_operands(
 
             // add `false`s to end
             bits.extend(std::iter::repeat_n(
-                Expr::Atomic(Metadata::new(), Atom::Literal(Literal::Bool(false))),
+                Expr::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Bool(false))),
                 postfix_len,
             ));
 
@@ -76,7 +76,7 @@ fn sat_order_lt(
     clauses: &mut Vec<conjure_cp::ast::CnfClause>,
     symbols: &mut SymbolTable,
 ) -> Expr {
-    let mut result = Expr::Atomic(Metadata::new(), Atom::Literal(Literal::Bool(false)));
+    let mut result = Expr::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Bool(false)));
 
     for (a_i, b_i) in a_bits.iter().zip(b_bits.iter()) {
         // (NOT a_i AND b_i)
@@ -108,10 +108,10 @@ fn literal_sat_order_int(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
     };
 
     Ok(Reduction::pure(Expr::SATInt(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         SATIntEncoding::Order,
         Moo::new(into_matrix_expr!(vec![Expr::Atomic(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Atom::Literal(Literal::Bool(true)),
         )])),
         (value, value),

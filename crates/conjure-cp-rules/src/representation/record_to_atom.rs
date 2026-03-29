@@ -128,7 +128,7 @@ impl Representation for RecordToAtom {
                 (
                     name,
                     Expression::Atomic(
-                        Metadata::new(),
+                        Box::new(Metadata::new()),
                         Atom::Reference(conjure_cp::ast::Reference::new(decl)),
                     ),
                 )

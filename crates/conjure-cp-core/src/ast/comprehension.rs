@@ -280,15 +280,15 @@ impl ComprehensionBuilder {
 
             let guard_expr = match other_guards.as_slice() {
                 [x] => x.clone(),
-                xs => Expression::And(Metadata::new(), Moo::new(into_matrix_expr!(xs.to_vec()))),
+                xs => Expression::And(Box::new(Metadata::new()), Moo::new(into_matrix_expr!(xs.to_vec()))),
             };
 
             expression = match comprehension_kind {
                 ACOperatorKind::And => {
-                    Expression::Imply(Metadata::new(), Moo::new(guard_expr), Moo::new(expression))
+                    Expression::Imply(Box::new(Metadata::new()), Moo::new(guard_expr), Moo::new(expression))
                 }
                 ACOperatorKind::Or => Expression::And(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     Moo::new(matrix_expr![guard_expr, expression]),
                 ),
 

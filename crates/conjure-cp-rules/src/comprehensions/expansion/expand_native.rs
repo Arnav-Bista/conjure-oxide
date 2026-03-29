@@ -105,7 +105,7 @@ fn with_temporary_quantified_binding<T>(
     let mut originals = Vec::with_capacity(targets.len());
     for mut target in targets {
         let old_kind = target.replace_kind(DeclarationKind::TemporaryValueLetting(
-            Expression::Atomic(Metadata::new(), Atom::Literal(value.clone())),
+            Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(value.clone())),
         ));
         originals.push((target, old_kind));
     }

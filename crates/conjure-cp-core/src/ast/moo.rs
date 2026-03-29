@@ -47,6 +47,12 @@ impl<T: Quine> Quine for Moo<T> {
     }
 }
 
+impl<T: Default> Default for Moo<T> {
+    fn default() -> Self {
+        Moo::new(T::default())
+    }
+}
+
 impl<T> Moo<T> {
     /// Constructs a new `Moo<T>`.
     pub fn new(value: T) -> Moo<T> {

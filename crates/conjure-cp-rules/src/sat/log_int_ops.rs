@@ -249,7 +249,7 @@ fn cnf_int_sum(expr: &Expr, symbols: &SymbolTable) -> ApplicationResult {
 
     Ok(Reduction::cnf(
         Expr::SATInt(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             SATIntEncoding::Log,
             Moo::new(into_matrix_expr!(result)),
             (min, max),
@@ -479,7 +479,7 @@ fn cnf_int_product(expr: &Expr, symbols: &SymbolTable) -> ApplicationResult {
 
     Ok(Reduction::cnf(
         Expr::SATInt(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             SATIntEncoding::Log,
             Moo::new(into_matrix_expr!(result)),
             (min, max),
@@ -517,7 +517,7 @@ fn cnf_int_neg(expr: &Expr, symbols: &SymbolTable) -> ApplicationResult {
 
     Ok(Reduction::cnf(
         Expr::SATInt(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             SATIntEncoding::Log,
             Moo::new(into_matrix_expr!(result)),
             (-max, -min),
@@ -601,7 +601,7 @@ fn cnf_int_min(expr: &Expr, symbols: &SymbolTable) -> ApplicationResult {
 
     Ok(Reduction::cnf(
         Expr::SATInt(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             SATIntEncoding::Log,
             Moo::new(into_matrix_expr!(result)),
             (min, max),
@@ -721,7 +721,7 @@ fn cnf_int_max(expr: &Expr, symbols: &SymbolTable) -> ApplicationResult {
 
     Ok(Reduction::cnf(
         Expr::SATInt(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             SATIntEncoding::Log,
             Moo::new(into_matrix_expr!(result)),
             (min, max),
@@ -786,7 +786,7 @@ fn cnf_int_abs(expr: &Expr, symbols: &SymbolTable) -> ApplicationResult {
 
     Ok(Reduction::cnf(
         Expr::SATInt(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             SATIntEncoding::Log,
             Moo::new(into_matrix_expr!(result)),
             range,
@@ -942,7 +942,7 @@ fn cnf_int_safediv(expr: &Expr, symbols: &SymbolTable) -> ApplicationResult {
 
     Ok(Reduction::cnf(
         Expr::SATInt(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             SATIntEncoding::Log,
             Moo::new(into_matrix_expr!(out)),
             (min, max),

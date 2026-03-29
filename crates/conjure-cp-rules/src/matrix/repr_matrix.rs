@@ -127,11 +127,11 @@ fn index_matrix_to_atom_impl(expr: &Expr, symbols: &SymbolTable) -> ApplicationR
                     return Err(RuleNotApplicable);
                 };
 
-                let offset = Expr::Atomic(Metadata::new(), Literal::Int(from - 1).into());
+                let offset = Expr::Atomic(Box::new(Metadata::new()), Literal::Int(from - 1).into());
                 let old_index = &indices[0].clone();
 
                 return Ok(Reduction::pure(Expr::SafeIndex(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     Moo::new(new_subject),
                     vec![essence_expr!(&old_index - &offset)],
                 )));
@@ -217,7 +217,7 @@ fn index_matrix_to_atom_impl(expr: &Expr, symbols: &SymbolTable) -> ApplicationR
             // (coeffs . terms) + 1
             sum_terms.push(essence_expr!(1));
 
-            let flat_index = Expr::Sum(Metadata::new(), Moo::new(into_matrix_expr![sum_terms]));
+            let flat_index = Expr::Sum(Box::new(Metadata::new()), Moo::new(into_matrix_expr![sum_terms]));
 
             // now lets get the flat matrix.
 
@@ -236,7 +236,7 @@ fn index_matrix_to_atom_impl(expr: &Expr, symbols: &SymbolTable) -> ApplicationR
             let flat_matrix = into_matrix_expr![flat_elems];
 
             Ok(Reduction::pure(Expr::SafeIndex(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Moo::new(flat_matrix),
                 vec![flat_index],
             )))

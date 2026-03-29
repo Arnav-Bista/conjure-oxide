@@ -103,7 +103,7 @@ fn simplify_negation_of_product(expr: &Expr, _: &SymbolTable) -> ApplicationResu
     factors.push(essence_expr!(-1));
 
     Ok(Reduction::pure(Expr::Product(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(into_matrix_expr!(factors)),
     )))
 }

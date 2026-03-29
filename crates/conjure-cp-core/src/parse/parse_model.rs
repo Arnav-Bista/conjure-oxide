@@ -585,8 +585,8 @@ fn parse_expression_to_int_val(obj: &JsonValue, scope: &SymbolTablePtr) -> Resul
     IntVal::new_expr(Moo::new(expr)).ok_or(error!("Could not parse integer expression"))
 }
 
-type BinOp = fn(Metadata, Moo<Expression>, Moo<Expression>) -> Expression;
-type UnaryOp = fn(Metadata, Moo<Expression>) -> Expression;
+type BinOp = fn(Box<Metadata>, Moo<Expression>, Moo<Expression>) -> Expression;
+type UnaryOp = fn(Box<Metadata>, Moo<Expression>) -> Expression;
 
 fn binary_operator(op_name: &str) -> Option<BinOp> {
     match op_name {
@@ -693,7 +693,7 @@ pub fn parse_expression(obj: &JsonValue, scope: &SymbolTablePtr) -> Result<Expre
                 .ok_or_else(|| fail("Reference.lookup"))?;
 
             Ok(Expression::Atomic(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Atom::Reference(crate::ast::Reference::new(declaration)),
             ))
         }
@@ -742,7 +742,7 @@ fn parse_abs_lit(abs_set: &Value, scope: &SymbolTablePtr) -> Result<Expression> 
         .collect::<Result<Vec<_>>>()?;
 
     Ok(Expression::AbstractLiteral(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         AbstractLiteral::Set(expressions),
     ))
 }
@@ -757,7 +757,7 @@ fn parse_abs_mset(abs_mset: &Value, scope: &SymbolTablePtr) -> Result<Expression
         .collect::<Result<Vec<_>>>()?;
 
     Ok(Expression::AbstractLiteral(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         AbstractLiteral::MSet(expressions),
     ))
 }
@@ -772,7 +772,7 @@ fn parse_abs_tuple(abs_tuple: &Value, scope: &SymbolTablePtr) -> Result<Expressi
         .collect::<Result<Vec<_>>>()?;
 
     Ok(Expression::AbstractLiteral(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         AbstractLiteral::Tuple(expressions),
     ))
 }
@@ -805,7 +805,7 @@ fn parse_abs_record(abs_record: &Value, scope: &SymbolTablePtr) -> Result<Expres
     }
 
     Ok(Expression::AbstractLiteral(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         AbstractLiteral::Record(rec),
     ))
 }
@@ -835,7 +835,7 @@ fn parse_abs_function(abs_function: &Value, scope: &SymbolTablePtr) -> Result<Ex
         assignments.push(tuple);
     }
     Ok(Expression::AbstractLiteral(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         AbstractLiteral::Function(assignments),
     ))
 }
@@ -940,7 +940,7 @@ fn parse_comprehension(
         .map_err(|_| fail("Comprehension.return_expr.parse_expression"))?;
 
     Ok(Expression::Comprehension(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(comprehension.with_return_value(expr, comprehension_kind)),
     ))
 }
@@ -963,7 +963,7 @@ fn parse_bin_op(
         Value::Array(bin_op_args) if bin_op_args.len() == 2 => {
             let arg1 = parse_expression(&bin_op_args[0], scope)?;
             let arg2 = parse_expression(&bin_op_args[1], scope)?;
-            Ok(constructor(Metadata::new(), Moo::new(arg1), Moo::new(arg2)))
+            Ok(constructor(Box::new(Metadata::new()), Moo::new(arg1), Moo::new(arg2)))
         }
         _ => Err(error!("Binary operator arguments are not a 2-array")),
     }
@@ -1006,7 +1006,7 @@ fn parse_table_op(
     }
 
     Ok(Expression::Table(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(tuple_expr),
         Moo::new(allowed_rows_expr),
     ))
@@ -1086,7 +1086,7 @@ fn parse_indexing_slicing_op(
 
     if all_known {
         Ok(Expression::UnsafeIndex(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(target),
             indices
                 .into_iter()
@@ -1095,7 +1095,7 @@ fn parse_indexing_slicing_op(
         ))
     } else {
         Ok(Expression::UnsafeSlice(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(target),
             indices,
         ))
@@ -1123,12 +1123,12 @@ fn parse_flatten_op(
 
     if let Some(n) = n {
         Ok(Expression::Flatten(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Some(Moo::new(n)),
             Moo::new(matrix),
         ))
     } else {
-        Ok(Expression::Flatten(Metadata::new(), None, Moo::new(matrix)))
+        Ok(Expression::Flatten(Box::new(Metadata::new()), None, Moo::new(matrix)))
     }
 }
 
@@ -1165,7 +1165,7 @@ fn parse_unary_op(
     }
     .map_err(|_| fail("arg"))?;
 
-    Ok(constructor(Metadata::new(), Moo::new(arg)))
+    Ok(constructor(Box::new(Metadata::new()), Moo::new(arg)))
 }
 
 // Takes in { AbstractLiteral: .... }
@@ -1270,7 +1270,7 @@ fn parse_constant(
             };
 
             Ok(Expression::Atomic(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Atom::Literal(Literal::Int(int_32)),
             ))
         }
@@ -1280,7 +1280,7 @@ fn parse_constant(
                 .as_bool()
                 .ok_or(error!("ConstantBool does not contain bool"))?;
             Ok(Expression::Atomic(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Atom::Literal(Literal::Bool(b)),
             ))
         }
@@ -1312,7 +1312,7 @@ fn parse_constant(
                 .and_then(|x| x.as_array())
                 .and_then(|x| x[1].as_i64())
                 .and_then(|x| x.try_into().ok())
-                .map(|x| Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(x))));
+                .map(|x| Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(x))));
 
             if let Some(expr) = int_expr {
                 return Ok(expr);
@@ -1321,7 +1321,7 @@ fn parse_constant(
             let bool_expr = constant
                 .get("ConstantBool")
                 .and_then(|x| x.as_bool())
-                .map(|x| Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Bool(x))));
+                .map(|x| Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Bool(x))));
 
             if let Some(expr) = bool_expr {
                 return Ok(expr);

@@ -192,7 +192,7 @@ fn add_return_expression_to_generator_model(
             let dummy_domain = focus.domain_of().unwrap();
             let dummy_decl = symtab.gensym(&dummy_domain);
             *focus = Expression::Atomic(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Atom::Reference(conjure_cp::ast::Reference::new(dummy_decl)),
             );
 
@@ -224,7 +224,7 @@ fn add_return_expression_to_generator_model(
                     let dummy_domain = focus.domain_of().unwrap();
                     let dummy_decl = symtab.gensym(&dummy_domain);
                     *focus = Expression::Atomic(
-                        Metadata::new(),
+                        Box::new(Metadata::new()),
                         Atom::Reference(conjure_cp::ast::Reference::new(dummy_decl)),
                     );
 
@@ -255,7 +255,7 @@ fn add_return_expression_to_generator_model(
             let dummy_domain = focus.domain_of().unwrap();
             let dummy_decl = symtab.gensym(&dummy_domain);
             *focus = Expression::Atomic(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Atom::Reference(conjure_cp::ast::Reference::new(dummy_decl)),
             );
 
@@ -272,9 +272,9 @@ fn add_return_expression_to_generator_model(
     }
 
     let new_return_expression = Expression::Neq(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(Expression::Atomic(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             ac_operator.identity().into(),
         )),
         Moo::new(zipper.rebuild_root()),

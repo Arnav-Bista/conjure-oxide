@@ -25,20 +25,20 @@ fn rules_present() {
 #[test]
 fn sum_of_constants() {
     let valid_sum_expression = Expression::Sum(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(matrix_expr![
-            Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(1))),
-            Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(2))),
-            Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(3))),
+            Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(1))),
+            Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(2))),
+            Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(3))),
         ]),
     );
 
     let invalid_sum_expression = Expression::Sum(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(matrix_expr![
-            Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(1))),
+            Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(1))),
             Expression::Atomic(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Atom::Reference(Reference::new(DeclarationPtr::new_find(
                     Name::user("a"),
                     Domain::bool()
@@ -78,40 +78,40 @@ fn recursive_sum_of_constants() {
         Domain::int(vec![Range::Bounded(1, 5)]),
     )));
     let complex_expression = Expression::Eq(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(Expression::Sum(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(matrix_expr![
-                Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(1))),
-                Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(2))),
+                Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(1))),
+                Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(2))),
                 Expression::Sum(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     Moo::new(matrix_expr![
-                        Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(1))),
-                        Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(2))),
+                        Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(1))),
+                        Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(2))),
                     ]),
                 ),
-                Expression::Atomic(Metadata::new(), a.clone()),
+                Expression::Atomic(Box::new(Metadata::new()), a.clone()),
             ]),
         )),
         Moo::new(Expression::Atomic(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Atom::Literal(Literal::Int(3)),
         )),
     );
     let correct_simplified_expression = Expression::Eq(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(Expression::Sum(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(matrix_expr![
-                Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(1))),
-                Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(2))),
-                Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(3))),
-                Expression::Atomic(Metadata::new(), a),
+                Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(1))),
+                Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(2))),
+                Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(3))),
+                Expression::Atomic(Box::new(Metadata::new()), a),
             ]),
         )),
         Moo::new(Expression::Atomic(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Atom::Literal(Literal::Int(3)),
         )),
     );
@@ -125,13 +125,13 @@ fn simplify_expression(expr: Expression) -> Expression {
         Expression::Sum(_metadata, expressions) => {
             let expressions = Moo::unwrap_or_clone(expressions).unwrap_list().unwrap();
             if let Some(result) = evaluate_sum_of_constants(&Expression::Sum(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Moo::new(into_matrix_expr![expressions.clone()]),
             )) {
-                Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(result)))
+                Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(result)))
             } else {
                 Expression::Sum(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     Moo::new(into_matrix_expr![
                         expressions.into_iter().map(simplify_expression).collect()
                     ]),
@@ -139,12 +139,12 @@ fn simplify_expression(expr: Expression) -> Expression {
             }
         }
         Expression::Eq(_metadata, left, right) => Expression::Eq(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(simplify_expression(Moo::unwrap_or_clone(left))),
             Moo::new(simplify_expression(Moo::unwrap_or_clone(right))),
         ),
         Expression::Geq(_metadata, left, right) => Expression::Geq(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(simplify_expression(Moo::unwrap_or_clone(left))),
             Moo::new(simplify_expression(Moo::unwrap_or_clone(right))),
         ),
@@ -158,11 +158,11 @@ fn rule_sum_constants() {
     let unwrap_sum = get_rule_by_name("remove_unit_vector_sum").unwrap();
 
     let mut expr = Expression::Sum(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(matrix_expr![
-            Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(1))),
-            Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(2))),
-            Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(3))),
+            Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(1))),
+            Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(2))),
+            Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(3))),
         ]),
     );
 
@@ -177,7 +177,7 @@ fn rule_sum_constants() {
 
     assert_eq!(
         expr,
-        Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(6)))
+        Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(6)))
     );
 }
 
@@ -186,16 +186,16 @@ fn rule_sum_geq() {
     let introduce_sumgeq = get_rule_by_name("introduce_weighted_sumleq_sumgeq").unwrap();
 
     let mut expr = Expression::Geq(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(Expression::Sum(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(matrix_expr![
-                Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(1))),
-                Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(2))),
+                Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(1))),
+                Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(2))),
             ]),
         )),
         Moo::new(Expression::Atomic(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Atom::Literal(Literal::Int(3)),
         )),
     );
@@ -208,7 +208,7 @@ fn rule_sum_geq() {
     assert_eq!(
         expr,
         Expression::FlatSumGeq(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             vec![
                 Atom::Literal(Literal::Int(1)),
                 Atom::Literal(Literal::Int(2)),
@@ -236,11 +236,11 @@ fn reduce_solve_xyz() {
 
     // 2 + 3 - 1
     let mut expr1 = Expression::Sum(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(matrix_expr![
-            Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(2))),
-            Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(3))),
-            Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(-1))),
+            Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(2))),
+            Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(3))),
+            Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(-1))),
         ]),
     );
 
@@ -254,7 +254,7 @@ fn reduce_solve_xyz() {
         .new_expression;
     assert_eq!(
         expr1,
-        Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(4)))
+        Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(4)))
     );
 
     let a = Atom::Reference(Reference::new(DeclarationPtr::new_find(
@@ -272,13 +272,13 @@ fn reduce_solve_xyz() {
 
     // a + b + c = 4
     expr1 = Expression::Leq(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(Expression::Sum(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(matrix_expr![
-                Expression::Atomic(Metadata::new(), a.clone()),
-                Expression::Atomic(Metadata::new(), b.clone()),
-                Expression::Atomic(Metadata::new(), c.clone()),
+                Expression::Atomic(Box::new(Metadata::new()), a.clone()),
+                Expression::Atomic(Box::new(Metadata::new()), b.clone()),
+                Expression::Atomic(Box::new(Metadata::new()), c.clone()),
             ]),
         )),
         Moo::new(expr1),
@@ -290,7 +290,7 @@ fn reduce_solve_xyz() {
     assert_eq!(
         expr1,
         Expression::FlatSumLeq(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             vec![a.clone(), b.clone(), c],
             Atom::Literal(Literal::Int(4))
         )
@@ -298,9 +298,9 @@ fn reduce_solve_xyz() {
 
     // a < b
     let mut expr2 = Expression::Lt(
-        Metadata::new(),
-        Moo::new(Expression::Atomic(Metadata::new(), a.clone())),
-        Moo::new(Expression::Atomic(Metadata::new(), b.clone())),
+        Box::new(Metadata::new()),
+        Moo::new(Expression::Atomic(Box::new(Metadata::new()), a.clone())),
+        Moo::new(Expression::Atomic(Box::new(Metadata::new()), b.clone())),
     );
     expr2 = lt_to_leq
         .apply(&expr2, &SymbolTable::new())
@@ -314,7 +314,7 @@ fn reduce_solve_xyz() {
     assert_eq!(
         expr2,
         Expression::FlatIneq(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(a),
             Moo::new(b),
             Box::new(Literal::Int(-1)),
@@ -356,11 +356,11 @@ fn rule_remove_double_negation() {
     let remove_double_negation = get_rule_by_name("remove_double_negation").unwrap();
 
     let mut expr = Expression::Not(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(Expression::Not(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(Expression::Atomic(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Atom::Literal(Literal::Bool(true)),
             )),
         )),
@@ -373,7 +373,7 @@ fn rule_remove_double_negation() {
 
     assert_eq!(
         expr,
-        Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Bool(true)))
+        Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Bool(true)))
     );
 }
 
@@ -383,16 +383,16 @@ fn remove_trivial_and_or() {
     let remove_trivial_or = get_rule_by_name("remove_unit_vector_or").unwrap();
 
     let mut expr_and = Expression::And(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(matrix_expr![Expression::Atomic(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Atom::Literal(Literal::Bool(true)),
         )]),
     );
     let mut expr_or = Expression::Or(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(matrix_expr![Expression::Atomic(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Atom::Literal(Literal::Bool(false)),
         )]),
     );
@@ -408,11 +408,11 @@ fn remove_trivial_and_or() {
 
     assert_eq!(
         expr_and,
-        Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Bool(true)))
+        Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Bool(true)))
     );
     assert_eq!(
         expr_or,
-        Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Bool(false)))
+        Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Bool(false)))
     );
 }
 
@@ -431,12 +431,12 @@ fn rule_distribute_not_over_and() {
     )));
 
     let mut expr = Expression::Not(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(Expression::And(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(matrix_expr![
-                Expression::Atomic(Metadata::new(), a.clone()),
-                Expression::Atomic(Metadata::new(), b.clone()),
+                Expression::Atomic(Box::new(Metadata::new()), a.clone()),
+                Expression::Atomic(Box::new(Metadata::new()), b.clone()),
             ]),
         )),
     );
@@ -449,15 +449,15 @@ fn rule_distribute_not_over_and() {
     assert_eq!(
         expr,
         Expression::Or(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(matrix_expr![
                 Expression::Not(
-                    Metadata::new(),
-                    Moo::new(Expression::Atomic(Metadata::new(), a))
+                    Box::new(Metadata::new()),
+                    Moo::new(Expression::Atomic(Box::new(Metadata::new()), a))
                 ),
                 Expression::Not(
-                    Metadata::new(),
-                    Moo::new(Expression::Atomic(Metadata::new(), b))
+                    Box::new(Metadata::new()),
+                    Moo::new(Expression::Atomic(Box::new(Metadata::new()), b))
                 ),
             ])
         )
@@ -479,12 +479,12 @@ fn rule_distribute_not_over_or() {
     )));
 
     let mut expr = Expression::Not(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(Expression::Or(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(matrix_expr![
-                Expression::Atomic(Metadata::new(), a.clone()),
-                Expression::Atomic(Metadata::new(), b.clone()),
+                Expression::Atomic(Box::new(Metadata::new()), a.clone()),
+                Expression::Atomic(Box::new(Metadata::new()), b.clone()),
             ]),
         )),
     );
@@ -497,15 +497,15 @@ fn rule_distribute_not_over_or() {
     assert_eq!(
         expr,
         Expression::And(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(matrix_expr![
                 Expression::Not(
-                    Metadata::new(),
-                    Moo::new(Expression::Atomic(Metadata::new(), a))
+                    Box::new(Metadata::new()),
+                    Moo::new(Expression::Atomic(Box::new(Metadata::new()), a))
                 ),
                 Expression::Not(
-                    Metadata::new(),
-                    Moo::new(Expression::Atomic(Metadata::new(), b))
+                    Box::new(Metadata::new()),
+                    Moo::new(Expression::Atomic(Box::new(Metadata::new()), b))
                 ),
             ])
         )
@@ -517,9 +517,9 @@ fn rule_distribute_not_over_and_not_changed() {
     let distribute_not_over_and = get_rule_by_name("distribute_not_over_and").unwrap();
 
     let expr = Expression::Not(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(Expression::Atomic(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Atom::Reference(Reference::new(DeclarationPtr::new_find(
                 Name::user("a"),
                 Domain::int(vec![Range::Bounded(1, 5)]),
@@ -537,9 +537,9 @@ fn rule_distribute_not_over_or_not_changed() {
     let distribute_not_over_or = get_rule_by_name("distribute_not_over_or").unwrap();
 
     let expr = Expression::Not(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(Expression::Atomic(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Atom::Reference(Reference::new(DeclarationPtr::new_find(
                 Name::user("a"),
                 Domain::int(vec![Range::Bounded(1, 5)]),
@@ -567,16 +567,16 @@ fn rule_distribute_or_over_and() {
     )));
 
     let expr = Expression::Or(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(matrix_expr![
             Expression::And(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Moo::new(matrix_expr![
-                    Expression::Atomic(Metadata::new(), d1.clone()),
-                    Expression::Atomic(Metadata::new(), d2.clone()),
+                    Expression::Atomic(Box::new(Metadata::new()), d1.clone()),
+                    Expression::Atomic(Box::new(Metadata::new()), d2.clone()),
                 ]),
             ),
-            Expression::Atomic(Metadata::new(), d2.clone()),
+            Expression::Atomic(Box::new(Metadata::new()), d2.clone()),
         ]),
     );
 
@@ -587,20 +587,20 @@ fn rule_distribute_or_over_and() {
     assert_eq!(
         red.new_expression,
         Expression::And(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(matrix_expr![
                 Expression::Or(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     Moo::new(matrix_expr![
-                        Expression::Atomic(Metadata::new(), d2.clone()),
-                        Expression::Atomic(Metadata::new(), d1),
+                        Expression::Atomic(Box::new(Metadata::new()), d2.clone()),
+                        Expression::Atomic(Box::new(Metadata::new()), d1),
                     ])
                 ),
                 Expression::Or(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     Moo::new(matrix_expr![
-                        Expression::Atomic(Metadata::new(), d2.clone()),
-                        Expression::Atomic(Metadata::new(), d2),
+                        Expression::Atomic(Box::new(Metadata::new()), d2.clone()),
+                        Expression::Atomic(Box::new(Metadata::new()), d2),
                     ])
                 ),
             ])
@@ -645,27 +645,27 @@ fn rewrite_solve_xyz() {
 
     // Construct nested expression
     let nested_expr = Expression::And(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(matrix_expr![
             Expression::Eq(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Moo::new(Expression::Sum(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     Moo::new(matrix_expr![
-                        Expression::Atomic(Metadata::new(), a.clone()),
-                        Expression::Atomic(Metadata::new(), b.clone()),
-                        Expression::Atomic(Metadata::new(), c),
+                        Expression::Atomic(Box::new(Metadata::new()), a.clone()),
+                        Expression::Atomic(Box::new(Metadata::new()), b.clone()),
+                        Expression::Atomic(Box::new(Metadata::new()), c),
                     ]),
                 )),
                 Moo::new(Expression::Atomic(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     Atom::Literal(Literal::Int(4)),
                 )),
             ),
             Expression::Lt(
-                Metadata::new(),
-                Moo::new(Expression::Atomic(Metadata::new(), a)),
-                Moo::new(Expression::Atomic(Metadata::new(), b)),
+                Box::new(Metadata::new()),
+                Moo::new(Expression::Atomic(Box::new(Metadata::new()), a)),
+                Moo::new(Expression::Atomic(Box::new(Metadata::new()), b)),
             ),
         ]),
     );
@@ -776,14 +776,14 @@ fn choose_rewrite(results: &[RuleResult]) -> Option<Expression> {
 
 #[test]
 fn eval_const_int() {
-    let expr = Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(1)));
+    let expr = Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(1)));
     let result = eval_constant(&expr);
     assert_eq!(result, Some(Literal::Int(1)));
 }
 
 #[test]
 fn eval_const_bool() {
-    let expr = Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Bool(true)));
+    let expr = Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Bool(true)));
     let result = eval_constant(&expr);
     assert_eq!(result, Some(Literal::Bool(true)));
 }
@@ -791,10 +791,10 @@ fn eval_const_bool() {
 #[test]
 fn eval_const_and() {
     let expr = Expression::And(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(matrix_expr![
-            Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Bool(true))),
-            Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Bool(false))),
+            Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Bool(true))),
+            Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Bool(false))),
         ]),
     );
     let result = eval_constant(&expr);
@@ -804,7 +804,7 @@ fn eval_const_and() {
 #[test]
 fn eval_const_ref() {
     let expr = Expression::Atomic(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Atom::Reference(Reference::new(DeclarationPtr::new_find(
             Name::user("a"),
             Domain::int(vec![Range::Bounded(1, 5)]),
@@ -817,15 +817,15 @@ fn eval_const_ref() {
 #[test]
 fn eval_const_nested_ref() {
     let expr = Expression::Sum(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(matrix_expr![
-            Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(1))),
+            Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(1))),
             Expression::And(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Moo::new(matrix_expr![
-                    Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Bool(true))),
+                    Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Bool(true))),
                     Expression::Atomic(
-                        Metadata::new(),
+                        Box::new(Metadata::new()),
                         Atom::Reference(Reference::new(DeclarationPtr::new_find(
                             Name::user("a"),
                             Domain::int(vec![Range::Bounded(1, 5)])
@@ -842,13 +842,13 @@ fn eval_const_nested_ref() {
 #[test]
 fn eval_const_eq_int() {
     let expr = Expression::Eq(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(Expression::Atomic(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Atom::Literal(Literal::Int(1)),
         )),
         Moo::new(Expression::Atomic(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Atom::Literal(Literal::Int(1)),
         )),
     );
@@ -859,13 +859,13 @@ fn eval_const_eq_int() {
 #[test]
 fn eval_const_eq_bool() {
     let expr = Expression::Eq(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(Expression::Atomic(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Atom::Literal(Literal::Bool(true)),
         )),
         Moo::new(Expression::Atomic(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Atom::Literal(Literal::Bool(true)),
         )),
     );
@@ -876,13 +876,13 @@ fn eval_const_eq_bool() {
 #[test]
 fn eval_const_eq_mixed() {
     let expr = Expression::Eq(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(Expression::Atomic(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Atom::Literal(Literal::Int(1)),
         )),
         Moo::new(Expression::Atomic(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Atom::Literal(Literal::Bool(true)),
         )),
     );
@@ -893,10 +893,10 @@ fn eval_const_eq_mixed() {
 #[test]
 fn eval_const_sum_mixed() {
     let expr = Expression::Sum(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(matrix_expr![
-            Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(1))),
-            Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Bool(true))),
+            Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(1))),
+            Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Bool(true))),
         ]),
     );
     let result = eval_constant(&expr);
@@ -906,29 +906,29 @@ fn eval_const_sum_mixed() {
 #[test]
 fn eval_const_sum_xyz() {
     let expr = Expression::And(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(matrix_expr![
             Expression::Eq(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Moo::new(Expression::Sum(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     Moo::new(matrix_expr![
                         Expression::Atomic(
-                            Metadata::new(),
+                            Box::new(Metadata::new()),
                             Atom::Reference(Reference::new(DeclarationPtr::new_find(
                                 Name::user("x"),
                                 Domain::int(vec![Range::Bounded(1, 5)])
                             )))
                         ),
                         Expression::Atomic(
-                            Metadata::new(),
+                            Box::new(Metadata::new()),
                             Atom::Reference(Reference::new(DeclarationPtr::new_find(
                                 Name::user("y"),
                                 Domain::int(vec![Range::Bounded(1, 5)])
                             )))
                         ),
                         Expression::Atomic(
-                            Metadata::new(),
+                            Box::new(Metadata::new()),
                             Atom::Reference(Reference::new(DeclarationPtr::new_find(
                                 Name::user("z"),
                                 Domain::int(vec![Range::Bounded(1, 5)])
@@ -937,21 +937,21 @@ fn eval_const_sum_xyz() {
                     ])
                 )),
                 Moo::new(Expression::Atomic(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     Atom::Literal(Literal::Int(4)),
                 )),
             ),
             Expression::Geq(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Moo::new(Expression::Atomic(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     Atom::Reference(Reference::new(DeclarationPtr::new_find(
                         Name::user("x"),
                         Domain::int(vec![Range::Bounded(1, 5)])
                     )))
                 )),
                 Moo::new(Expression::Atomic(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     Atom::Reference(Reference::new(DeclarationPtr::new_find(
                         Name::user("y"),
                         Domain::int(vec![Range::Bounded(1, 5)])
@@ -967,10 +967,10 @@ fn eval_const_sum_xyz() {
 #[test]
 fn eval_const_or() {
     let expr = Expression::Or(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(matrix_expr![
-            Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Bool(false))),
-            Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Bool(false))),
+            Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Bool(false))),
+            Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Bool(false))),
         ]),
     );
     let result = eval_constant(&expr);

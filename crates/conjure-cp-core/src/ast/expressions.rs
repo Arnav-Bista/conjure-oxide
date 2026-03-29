@@ -57,13 +57,11 @@ use super::{
 //
 // https://github.com/conjure-cp/conjure-oxide/commit/6012de8096ca491ded91ecec61352fdf4e994f2e
 
-// TODO: box all usages of Metadata to bring this down a bit more - I have added variants to
-// ReturnType, and Metadata contains ReturnType, so Metadata has got bigger. Metadata will get a
-// lot bigger still when we start using it for memoisation, so it should really be
-// boxed ~niklasdewally
+// Metadata is wrapped in Box<Metadata> to keep Expression small.
+// Box<Metadata> is pointer-sized (8 bytes) regardless of how large Metadata grows.
 
-// expect size of Expression to be 112 bytes
-static_assertions::assert_eq_size!([u8; 112], Expression);
+// expect size of Expression to be 72 bytes
+static_assertions::assert_eq_size!([u8; 72], Expression);
 
 /// Represents different types of expressions used to define rules and constraints in the model.
 ///
@@ -92,13 +90,13 @@ static_assertions::assert_eq_size!([u8; 112], Expression);
 #[biplate(to=Vec<Expression>)]
 #[path_prefix(conjure_cp::ast)]
 pub enum Expression {
-    AbstractLiteral(Metadata, AbstractLiteral<Expression>),
+    AbstractLiteral(Box<Metadata>, AbstractLiteral<Expression>),
     /// The top of the model
-    Root(Metadata, Vec<Expression>),
+    Root(Box<Metadata>, Vec<Expression>),
 
     /// An expression representing "A is valid as long as B is true"
     /// Turns into a conjunction when it reaches a boolean context
-    Bubble(Metadata, Moo<Expression>, Moo<Expression>),
+    Bubble(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     /// A comprehension.
     ///
@@ -106,36 +104,36 @@ pub enum Expression {
     // todo (gskorokhod): Comprehension contains a symbol table which contains a bunch of pointers.
     // This makes implementing Quine tricky (it doesnt support Rc, by design). Skip it for now.
     #[polyquine_skip]
-    Comprehension(Metadata, Moo<Comprehension>),
+    Comprehension(Box<Metadata>, Moo<Comprehension>),
 
     /// Higher-level abstract comprehension
     #[polyquine_skip] // no idea what this is lol but it stops rustc screaming at me
-    AbstractComprehension(Metadata, Moo<AbstractComprehension>),
+    AbstractComprehension(Box<Metadata>, Moo<AbstractComprehension>),
 
     /// Defines dominance ("Solution A is preferred over Solution B")
-    DominanceRelation(Metadata, Moo<Expression>),
+    DominanceRelation(Box<Metadata>, Moo<Expression>),
     /// `fromSolution(name)` - Used in dominance relation definitions
-    FromSolution(Metadata, Moo<Atom>),
+    FromSolution(Box<Metadata>, Moo<Atom>),
 
     #[polyquine_with(arm = (_, name) => {
         let ident = proc_macro2::Ident::new(name.as_str(), proc_macro2::Span::call_site());
         quote::quote! { #ident.clone().into() }
     })]
-    Metavar(Metadata, Ustr),
+    Metavar(Box<Metadata>, Ustr),
 
-    Atomic(Metadata, Atom),
+    Atomic(Box<Metadata>, Atom),
 
     /// A matrix index.
     ///
     /// Defined iff the indices are within their respective index domains.
     #[compatible(JsonInput)]
-    UnsafeIndex(Metadata, Moo<Expression>, Vec<Expression>),
+    UnsafeIndex(Box<Metadata>, Moo<Expression>, Vec<Expression>),
 
     /// A safe matrix index.
     ///
     /// See [`Expression::UnsafeIndex`]
     #[compatible(SMT)]
-    SafeIndex(Metadata, Moo<Expression>, Vec<Expression>),
+    SafeIndex(Box<Metadata>, Moo<Expression>, Vec<Expression>),
 
     /// A matrix slice: `a[indices]`.
     ///
@@ -147,19 +145,19 @@ pub enum Expression {
     ///
     /// Defined iff the defined indices are within their respective index domains.
     #[compatible(JsonInput)]
-    UnsafeSlice(Metadata, Moo<Expression>, Vec<Option<Expression>>),
+    UnsafeSlice(Box<Metadata>, Moo<Expression>, Vec<Option<Expression>>),
 
     /// A safe matrix slice: `a[indices]`.
     ///
     /// See [`Expression::UnsafeSlice`].
-    SafeSlice(Metadata, Moo<Expression>, Vec<Option<Expression>>),
+    SafeSlice(Box<Metadata>, Moo<Expression>, Vec<Option<Expression>>),
 
     /// `inDomain(x,domain)` iff `x` is in the domain `domain`.
     ///
     /// This cannot be constructed from Essence input, nor passed to a solver: this expression is
     /// mainly used during the conversion of `UnsafeIndex` and `UnsafeSlice` to `SafeIndex` and
     /// `SafeSlice` respectively.
-    InDomain(Metadata, Moo<Expression>, DomainPtr),
+    InDomain(Box<Metadata>, Moo<Expression>, DomainPtr),
 
     /// `toInt(b)` casts boolean expression b to an integer.
     ///
@@ -167,153 +165,153 @@ pub enum Expression {
     ///
     /// - If b is true, then `toInt(b) == 1`
     #[compatible(SMT)]
-    ToInt(Metadata, Moo<Expression>),
+    ToInt(Box<Metadata>, Moo<Expression>),
 
     /// `|x|` - absolute value of `x`
     #[compatible(JsonInput, SMT)]
-    Abs(Metadata, Moo<Expression>),
+    Abs(Box<Metadata>, Moo<Expression>),
 
     /// `sum(<vec_expr>)`
     #[compatible(JsonInput, SMT)]
-    Sum(Metadata, Moo<Expression>),
+    Sum(Box<Metadata>, Moo<Expression>),
 
     /// `a * b * c * ...`
     #[compatible(JsonInput, SMT)]
-    Product(Metadata, Moo<Expression>),
+    Product(Box<Metadata>, Moo<Expression>),
 
     /// `min(<vec_expr>)`
     #[compatible(JsonInput, SMT)]
-    Min(Metadata, Moo<Expression>),
+    Min(Box<Metadata>, Moo<Expression>),
 
     /// `max(<vec_expr>)`
     #[compatible(JsonInput, SMT)]
-    Max(Metadata, Moo<Expression>),
+    Max(Box<Metadata>, Moo<Expression>),
 
     /// `not(a)`
     #[compatible(JsonInput, SAT, SMT)]
-    Not(Metadata, Moo<Expression>),
+    Not(Box<Metadata>, Moo<Expression>),
 
     /// `or(<vec_expr>)`
     #[compatible(JsonInput, SAT, SMT)]
-    Or(Metadata, Moo<Expression>),
+    Or(Box<Metadata>, Moo<Expression>),
 
     /// `and(<vec_expr>)`
     #[compatible(JsonInput, SAT, SMT)]
-    And(Metadata, Moo<Expression>),
+    And(Box<Metadata>, Moo<Expression>),
 
     /// Ensures that `a->b` (material implication).
     #[compatible(JsonInput, SMT)]
-    Imply(Metadata, Moo<Expression>, Moo<Expression>),
+    Imply(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     /// `iff(a, b)` a <-> b
     #[compatible(JsonInput, SMT)]
-    Iff(Metadata, Moo<Expression>, Moo<Expression>),
+    Iff(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     #[compatible(JsonInput)]
-    Union(Metadata, Moo<Expression>, Moo<Expression>),
+    Union(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     #[compatible(JsonInput)]
-    In(Metadata, Moo<Expression>, Moo<Expression>),
+    In(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     #[compatible(JsonInput)]
-    Intersect(Metadata, Moo<Expression>, Moo<Expression>),
+    Intersect(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     #[compatible(JsonInput)]
-    Supset(Metadata, Moo<Expression>, Moo<Expression>),
+    Supset(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     #[compatible(JsonInput)]
-    SupsetEq(Metadata, Moo<Expression>, Moo<Expression>),
+    SupsetEq(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     #[compatible(JsonInput)]
-    Subset(Metadata, Moo<Expression>, Moo<Expression>),
+    Subset(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     #[compatible(JsonInput)]
-    SubsetEq(Metadata, Moo<Expression>, Moo<Expression>),
+    SubsetEq(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     #[compatible(JsonInput, SMT)]
-    Eq(Metadata, Moo<Expression>, Moo<Expression>),
+    Eq(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     #[compatible(JsonInput, SMT)]
-    Neq(Metadata, Moo<Expression>, Moo<Expression>),
+    Neq(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     #[compatible(JsonInput, SMT)]
-    Geq(Metadata, Moo<Expression>, Moo<Expression>),
+    Geq(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     #[compatible(JsonInput, SMT)]
-    Leq(Metadata, Moo<Expression>, Moo<Expression>),
+    Leq(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     #[compatible(JsonInput, SMT)]
-    Gt(Metadata, Moo<Expression>, Moo<Expression>),
+    Gt(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     #[compatible(JsonInput, SMT)]
-    Lt(Metadata, Moo<Expression>, Moo<Expression>),
+    Lt(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     /// Division after preventing division by zero, usually with a bubble
     #[compatible(SMT)]
-    SafeDiv(Metadata, Moo<Expression>, Moo<Expression>),
+    SafeDiv(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     /// Division with a possibly undefined value (division by 0)
     #[compatible(JsonInput)]
-    UnsafeDiv(Metadata, Moo<Expression>, Moo<Expression>),
+    UnsafeDiv(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     /// Modulo after preventing mod 0, usually with a bubble
     #[compatible(SMT)]
-    SafeMod(Metadata, Moo<Expression>, Moo<Expression>),
+    SafeMod(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     /// Modulo with a possibly undefined value (mod 0)
     #[compatible(JsonInput)]
-    UnsafeMod(Metadata, Moo<Expression>, Moo<Expression>),
+    UnsafeMod(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     /// Negation: `-x`
     #[compatible(JsonInput, SMT)]
-    Neg(Metadata, Moo<Expression>),
+    Neg(Box<Metadata>, Moo<Expression>),
 
     /// Set of domain values function is defined for
     #[compatible(JsonInput)]
-    Defined(Metadata, Moo<Expression>),
+    Defined(Box<Metadata>, Moo<Expression>),
 
     /// Set of codomain values function is defined for
     #[compatible(JsonInput)]
-    Range(Metadata, Moo<Expression>),
+    Range(Box<Metadata>, Moo<Expression>),
 
     /// Unsafe power`x**y` (possibly undefined)
     ///
     /// Defined when (X!=0 \\/ Y!=0) /\ Y>=0
     #[compatible(JsonInput)]
-    UnsafePow(Metadata, Moo<Expression>, Moo<Expression>),
+    UnsafePow(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     /// `UnsafePow` after preventing undefinedness
-    SafePow(Metadata, Moo<Expression>, Moo<Expression>),
+    SafePow(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     /// Flatten matrix operator
     /// `flatten(M)` or `flatten(n, M)`
     /// where M is a matrix and n is an optional integer argument indicating depth of flattening
-    Flatten(Metadata, Option<Moo<Expression>>, Moo<Expression>),
+    Flatten(Box<Metadata>, Option<Moo<Expression>>, Moo<Expression>),
 
     /// `allDiff(<vec_expr>)`
     #[compatible(JsonInput)]
-    AllDiff(Metadata, Moo<Expression>),
+    AllDiff(Box<Metadata>, Moo<Expression>),
 
     /// `table([x1, x2, ...], [[r11, r12, ...], [r21, r22, ...], ...])`
     ///
     /// Represents a positive table constraint: the tuple `[x1, x2, ...]` must match one of the
     /// allowed rows.
     #[compatible(JsonInput)]
-    Table(Metadata, Moo<Expression>, Moo<Expression>),
+    Table(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     /// `negativeTable([x1, x2, ...], [[r11, r12, ...], [r21, r22, ...], ...])`
     ///
     /// Represents a negative table constraint: the tuple `[x1, x2, ...]` must NOT match any of the
     /// forbidden rows.
     #[compatible(JsonInput)]
-    NegativeTable(Metadata, Moo<Expression>, Moo<Expression>),
+    NegativeTable(Box<Metadata>, Moo<Expression>, Moo<Expression>),
     /// Binary subtraction operator
     ///
     /// This is a parser-level construct, and is immediately normalised to `Sum([a,-b])`.
     /// TODO: make this compatible with Set Difference calculations - need to change return type and domain for this expression and write a set comprehension rule.
     /// have already edited minus_to_sum to prevent this from applying to sets
     #[compatible(JsonInput)]
-    Minus(Metadata, Moo<Expression>, Moo<Expression>),
+    Minus(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     /// Ensures that x=|y| i.e. x is the absolute value of y.
     ///
@@ -323,7 +321,7 @@ pub enum Expression {
     ///
     /// + [Minion documentation](https://minion-solver.readthedocs.io/en/stable/usage/constraints.html#abs)
     #[compatible(Minion)]
-    FlatAbsEq(Metadata, Moo<Atom>, Moo<Atom>),
+    FlatAbsEq(Box<Metadata>, Moo<Atom>, Moo<Atom>),
 
     /// Ensures that `alldiff([a,b,...])`.
     ///
@@ -333,7 +331,7 @@ pub enum Expression {
     ///
     /// + [Minion documentation](https://minion-solver.readthedocs.io/en/stable/usage/constraints.html#alldiff)
     #[compatible(Minion)]
-    FlatAllDiff(Metadata, Vec<Atom>),
+    FlatAllDiff(Box<Metadata>, Vec<Atom>),
 
     /// Ensures that sum(vec) >= x.
     ///
@@ -343,7 +341,7 @@ pub enum Expression {
     ///
     /// + [Minion documentation](https://minion-solver.readthedocs.io/en/stable/usage/constraints.html#sumgeq)
     #[compatible(Minion)]
-    FlatSumGeq(Metadata, Vec<Atom>, Atom),
+    FlatSumGeq(Box<Metadata>, Vec<Atom>, Atom),
 
     /// Ensures that sum(vec) <= x.
     ///
@@ -353,7 +351,7 @@ pub enum Expression {
     ///
     /// + [Minion documentation](https://minion-solver.readthedocs.io/en/stable/usage/constraints.html#sumleq)
     #[compatible(Minion)]
-    FlatSumLeq(Metadata, Vec<Atom>, Atom),
+    FlatSumLeq(Box<Metadata>, Vec<Atom>, Atom),
 
     /// `ineq(x,y,k)` ensures that x <= y + k.
     ///
@@ -363,7 +361,7 @@ pub enum Expression {
     ///
     /// + [Minion documentation](https://minion-solver.readthedocs.io/en/stable/usage/constraints.html#ineq)
     #[compatible(Minion)]
-    FlatIneq(Metadata, Moo<Atom>, Moo<Atom>, Box<Literal>),
+    FlatIneq(Box<Metadata>, Moo<Atom>, Moo<Atom>, Box<Literal>),
 
     /// `w-literal(x,k)` ensures that x == k, where x is a variable and k a constant.
     ///
@@ -379,7 +377,7 @@ pub enum Expression {
     /// + `rules::minion::boolean_literal_to_wliteral`.
     #[compatible(Minion)]
     #[polyquine_skip]
-    FlatWatchedLiteral(Metadata, Reference, Literal),
+    FlatWatchedLiteral(Box<Metadata>, Reference, Literal),
 
     /// `weightedsumleq(cs,xs,total)` ensures that cs.xs <= total, where cs.xs is the scalar dot
     /// product of cs and xs.
@@ -392,7 +390,7 @@ pub enum Expression {
     ///
     /// + [Minion
     /// documentation](https://minion-solver.readthedocs.io/en/stable/usage/constraints.html#weightedsumleq)
-    FlatWeightedSumLeq(Metadata, Vec<Literal>, Vec<Atom>, Moo<Atom>),
+    FlatWeightedSumLeq(Box<Metadata>, Vec<Literal>, Vec<Atom>, Moo<Atom>),
 
     /// `weightedsumgeq(cs,xs,total)` ensures that cs.xs >= total, where cs.xs is the scalar dot
     /// product of cs and xs.
@@ -405,7 +403,7 @@ pub enum Expression {
     ///
     /// + [Minion
     /// documentation](https://minion-solver.readthedocs.io/en/stable/usage/constraints.html#weightedsumleq)
-    FlatWeightedSumGeq(Metadata, Vec<Literal>, Vec<Atom>, Moo<Atom>),
+    FlatWeightedSumGeq(Box<Metadata>, Vec<Literal>, Vec<Atom>, Moo<Atom>),
 
     /// Ensures that x =-y, where x and y are atoms.
     ///
@@ -415,7 +413,7 @@ pub enum Expression {
     ///
     /// + [Minion documentation](https://minion-solver.readthedocs.io/en/stable/usage/constraints.html#minuseq)
     #[compatible(Minion)]
-    FlatMinusEq(Metadata, Moo<Atom>, Moo<Atom>),
+    FlatMinusEq(Box<Metadata>, Moo<Atom>, Moo<Atom>),
 
     /// Ensures that x*y=z.
     ///
@@ -425,7 +423,7 @@ pub enum Expression {
     ///
     /// + [Minion documentation](https://minion-solver.readthedocs.io/en/stable/usage/constraints.html#product)
     #[compatible(Minion)]
-    FlatProductEq(Metadata, Moo<Atom>, Moo<Atom>, Moo<Atom>),
+    FlatProductEq(Box<Metadata>, Moo<Atom>, Moo<Atom>, Moo<Atom>),
 
     /// Ensures that floor(x/y)=z. Always true when y=0.
     ///
@@ -435,7 +433,7 @@ pub enum Expression {
     ///
     /// + [Minion documentation](https://minion-solver.readthedocs.io/en/stable/usage/constraints.html#div_undefzero)
     #[compatible(Minion)]
-    MinionDivEqUndefZero(Metadata, Moo<Atom>, Moo<Atom>, Moo<Atom>),
+    MinionDivEqUndefZero(Box<Metadata>, Moo<Atom>, Moo<Atom>, Moo<Atom>),
 
     /// Ensures that x%y=z. Always true when y=0.
     ///
@@ -445,7 +443,7 @@ pub enum Expression {
     ///
     /// + [Minion documentation](https://minion-solver.readthedocs.io/en/stable/usage/constraints.html#mod_undefzero)
     #[compatible(Minion)]
-    MinionModuloEqUndefZero(Metadata, Moo<Atom>, Moo<Atom>, Moo<Atom>),
+    MinionModuloEqUndefZero(Box<Metadata>, Moo<Atom>, Moo<Atom>, Moo<Atom>),
 
     /// Ensures that `x**y = z`.
     ///
@@ -458,7 +456,7 @@ pub enum Expression {
     ///
     /// + [Github comment about `pow` semantics](https://github.com/minion/minion/issues/40#issuecomment-2595914891)
     /// + [Minion documentation](https://minion-solver.readthedocs.io/en/stable/usage/constraints.html#pow)
-    MinionPow(Metadata, Moo<Atom>, Moo<Atom>, Moo<Atom>),
+    MinionPow(Box<Metadata>, Moo<Atom>, Moo<Atom>, Moo<Atom>),
 
     /// `reify(constraint,r)` ensures that r=1 iff `constraint` is satisfied, where r is a 0/1
     /// variable.
@@ -469,7 +467,7 @@ pub enum Expression {
     ///
     ///  + [Minion documentation](https://minion-solver.readthedocs.io/en/stable/usage/constraints.html#reify)
     #[compatible(Minion)]
-    MinionReify(Metadata, Moo<Expression>, Atom),
+    MinionReify(Box<Metadata>, Moo<Expression>, Atom),
 
     /// `reifyimply(constraint,r)` ensures that `r->constraint`, where r is a 0/1 variable.
     /// variable.
@@ -480,7 +478,7 @@ pub enum Expression {
     ///
     ///  + [Minion documentation](https://minion-solver.readthedocs.io/en/stable/usage/constraints.html#reifyimply)
     #[compatible(Minion)]
-    MinionReifyImply(Metadata, Moo<Expression>, Atom),
+    MinionReifyImply(Box<Metadata>, Moo<Expression>, Atom),
 
     /// `w-inintervalset(x, [a1,a2, b1,b2, … ])` ensures that the value of x belongs to one of the
     /// intervals {a1,…,a2}, {b1,…,b2} etc.
@@ -493,7 +491,7 @@ pub enum Expression {
     ///>
     ///  + [Minion documentation](https://minion-solver.readthedocs.io/en/stable/usage/constraints.html#w-inintervalset)
     #[compatible(Minion)]
-    MinionWInIntervalSet(Metadata, Atom, Vec<i32>),
+    MinionWInIntervalSet(Box<Metadata>, Atom, Vec<i32>),
 
     /// `w-inset(x, [v1, v2, … ])` ensures that the value of `x` is one of the explicitly given values `v1`, `v2`, etc.
     ///
@@ -507,7 +505,7 @@ pub enum Expression {
     ///
     ///  + [Minion documentation](https://minion-solver.readthedocs.io/en/stable/usage/constraints.html#w-inset)
     #[compatible(Minion)]
-    MinionWInSet(Metadata, Atom, Vec<i32>),
+    MinionWInSet(Box<Metadata>, Atom, Vec<i32>),
 
     /// `element_one(vec, i, e)` specifies that `vec[i] = e`. This implies that i is
     /// in the range `[1..len(vec)]`.
@@ -518,43 +516,43 @@ pub enum Expression {
     ///
     ///  + [Minion documentation](https://minion-solver.readthedocs.io/en/stable/usage/constraints.html#element_one)
     #[compatible(Minion)]
-    MinionElementOne(Metadata, Vec<Atom>, Moo<Atom>, Moo<Atom>),
+    MinionElementOne(Box<Metadata>, Vec<Atom>, Moo<Atom>, Moo<Atom>),
 
     /// Declaration of an auxiliary variable.
     ///
     /// As with Savile Row, we semantically distinguish this from `Eq`.
     #[compatible(Minion)]
     #[polyquine_skip]
-    AuxDeclaration(Metadata, Reference, Moo<Expression>),
+    AuxDeclaration(Box<Metadata>, Reference, Moo<Expression>),
 
     /// This expression is for encoding ints for the SAT solver, it stores the encoding type, the vector of booleans and the min/max for the int.
     #[compatible(SAT)]
-    SATInt(Metadata, SATIntEncoding, Moo<Expression>, (i32, i32)),
+    SATInt(Box<Metadata>, SATIntEncoding, Moo<Expression>, (i32, i32)),
 
     /// Addition over a pair of expressions (i.e. a + b) rather than a vec-expr like Expression::Sum.
     /// This is for compatibility with backends that do not support addition over vectors.
     #[compatible(SMT)]
-    PairwiseSum(Metadata, Moo<Expression>, Moo<Expression>),
+    PairwiseSum(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     /// Multiplication over a pair of expressions (i.e. a * b) rather than a vec-expr like Expression::Product.
     /// This is for compatibility with backends that do not support multiplication over vectors.
     #[compatible(SMT)]
-    PairwiseProduct(Metadata, Moo<Expression>, Moo<Expression>),
+    PairwiseProduct(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     #[compatible(JsonInput)]
-    Image(Metadata, Moo<Expression>, Moo<Expression>),
+    Image(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     #[compatible(JsonInput)]
-    ImageSet(Metadata, Moo<Expression>, Moo<Expression>),
+    ImageSet(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     #[compatible(JsonInput)]
-    PreImage(Metadata, Moo<Expression>, Moo<Expression>),
+    PreImage(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     #[compatible(JsonInput)]
-    Inverse(Metadata, Moo<Expression>, Moo<Expression>),
+    Inverse(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     #[compatible(JsonInput)]
-    Restrict(Metadata, Moo<Expression>, Moo<Expression>),
+    Restrict(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     /// Lexicographical < between two matrices.
     ///
@@ -564,24 +562,24 @@ pub enum Expression {
     /// I.e. A must be greater than B at the first index where they differ.
     ///
     /// E.g. [1, 1] <lex [2, 1] and [1, 1] <lex [1, 2]
-    LexLt(Metadata, Moo<Expression>, Moo<Expression>),
+    LexLt(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     /// Lexicographical <= between two matrices
-    LexLeq(Metadata, Moo<Expression>, Moo<Expression>),
+    LexLeq(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     /// Lexicographical > between two matrices
     /// This is a parser-level construct, and is immediately normalised to LexLt(b, a)
-    LexGt(Metadata, Moo<Expression>, Moo<Expression>),
+    LexGt(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     /// Lexicographical >= between two matrices
     /// This is a parser-level construct, and is immediately normalised to LexLeq(b, a)
-    LexGeq(Metadata, Moo<Expression>, Moo<Expression>),
+    LexGeq(Box<Metadata>, Moo<Expression>, Moo<Expression>),
 
     /// Low-level minion constraint. See Expression::LexLt
-    FlatLexLt(Metadata, Vec<Atom>, Vec<Atom>),
+    FlatLexLt(Box<Metadata>, Vec<Atom>, Vec<Atom>),
 
     /// Low-level minion constraint. See Expression::LexLeq
-    FlatLexLeq(Metadata, Vec<Atom>, Vec<Atom>),
+    FlatLexLeq(Box<Metadata>, Vec<Atom>, Vec<Atom>),
 }
 
 // for the given matrix literal, return a bounded domain from the min to max of applying op to each
@@ -973,7 +971,7 @@ impl Expression {
         macro_rules! match_meta_ref {
             ($($variant:ident),* $(,)?) => {
                 match self {
-                    $(Expression::$variant(meta, ..) => meta,)*
+                    $(Expression::$variant(meta, ..) => &**meta,)*
                 }
             };
         }
@@ -1151,7 +1149,7 @@ impl Expression {
                 elems
                     .clone()
                     .into_iter()
-                    .map(|x: Literal| Expression::Atomic(Metadata::new(), Atom::Literal(x)))
+                    .map(|x: Literal| Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(x)))
                     .collect_vec()
             }),
             _ => None,
@@ -1176,7 +1174,7 @@ impl Expression {
             ) => Some((
                 elems
                     .into_iter()
-                    .map(|x: Literal| Expression::Atomic(Metadata::new(), Atom::Literal(x)))
+                    .map(|x: Literal| Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(x)))
                     .collect_vec(),
                 domain.into(),
             )),
@@ -1301,25 +1299,25 @@ impl TryFrom<Expression> for i32 {
 }
 impl From<i32> for Expression {
     fn from(i: i32) -> Self {
-        Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(i)))
+        Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(i)))
     }
 }
 
 impl From<bool> for Expression {
     fn from(b: bool) -> Self {
-        Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Bool(b)))
+        Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Bool(b)))
     }
 }
 
 impl From<Atom> for Expression {
     fn from(value: Atom) -> Self {
-        Expression::Atomic(Metadata::new(), value)
+        Expression::Atomic(Box::new(Metadata::new()), value)
     }
 }
 
 impl From<Literal> for Expression {
     fn from(value: Literal) -> Self {
-        Expression::Atomic(Metadata::new(), value.into())
+        Expression::Atomic(Box::new(Metadata::new()), value.into())
     }
 }
 
@@ -2278,23 +2276,23 @@ mod tests {
 
     #[test]
     fn test_domain_of_constant_sum() {
-        let c1 = Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(1)));
-        let c2 = Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(2)));
-        let sum = Expression::Sum(Metadata::new(), Moo::new(matrix_expr![c1, c2]));
+        let c1 = Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(1)));
+        let c2 = Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(2)));
+        let sum = Expression::Sum(Box::new(Metadata::new()), Moo::new(matrix_expr![c1, c2]));
         assert_eq!(sum.domain_of(), Some(Domain::int(vec![Range::Single(3)])));
     }
 
     #[test]
     fn test_domain_of_constant_invalid_type() {
-        let c1 = Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(1)));
-        let c2 = Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Bool(true)));
-        let sum = Expression::Sum(Metadata::new(), Moo::new(matrix_expr![c1, c2]));
+        let c1 = Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(1)));
+        let c2 = Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Bool(true)));
+        let sum = Expression::Sum(Box::new(Metadata::new()), Moo::new(matrix_expr![c1, c2]));
         assert_eq!(sum.domain_of(), None);
     }
 
     #[test]
     fn test_domain_of_empty_sum() {
-        let sum = Expression::Sum(Metadata::new(), Moo::new(matrix_expr![]));
+        let sum = Expression::Sum(Box::new(Metadata::new()), Moo::new(matrix_expr![]));
         assert_eq!(sum.domain_of(), None);
     }
 }

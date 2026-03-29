@@ -223,7 +223,7 @@ pub fn safe_index_optimised(m: Expr, idx: Literal) -> Option<Expr> {
                 todo!("slice expression should not contain more than one unspecified index")
             };
 
-            Some(Expr::SafeIndex(Metadata::new(), mat, idxs))
+            Some(Expr::SafeIndex(Box::new(Metadata::new()), mat, idxs))
         }
         Expr::Flatten(_, None, inner) => {
             // Similar to indexed_flatten_matrix rule, but we don't care about out of bounds here
@@ -238,10 +238,10 @@ pub fn safe_index_optimised(m: Expr, idx: Literal) -> Option<Expr> {
             let flat_index = flat_index_to_full_index(index_domains, (index - 1) as u64);
             let flat_index: Vec<Expr> = flat_index.into_iter().map(Into::into).collect();
 
-            Some(Expr::SafeIndex(Metadata::new(), inner, flat_index))
+            Some(Expr::SafeIndex(Box::new(Metadata::new()), inner, flat_index))
         }
         _ => Some(Expr::SafeIndex(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(m),
             vec![idx.into()],
         )),

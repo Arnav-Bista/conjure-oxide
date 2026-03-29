@@ -75,7 +75,7 @@ fn reorder_product(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
 
     let mut factors = if coefficient != 1 {
         vec![Expr::Atomic(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Atom::Literal(Lit::Int(coefficient)),
         )]
     } else {

@@ -72,15 +72,15 @@ mod test {
 
         assert_eq!(
             parse_expr("42", symbols.clone()).unwrap(),
-            Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Int(42)))
+            Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Int(42)))
         );
         assert_eq!(
             parse_expr("true", symbols.clone()).unwrap(),
-            Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Bool(true)))
+            Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Bool(true)))
         );
         assert_eq!(
             parse_expr("false", symbols).unwrap(),
-            Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Bool(false)))
+            Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Bool(false)))
         )
     }
 
@@ -125,21 +125,21 @@ mod test {
         assert_eq!(
             exprs[0],
             Expression::Geq(
-                Metadata::new(),
-                Moo::new(Expression::Atomic(Metadata::new(), Atom::new_ref(x))),
-                Moo::new(Expression::Atomic(Metadata::new(), 5.into()))
+                Box::new(Metadata::new()),
+                Moo::new(Expression::Atomic(Box::new(Metadata::new()), Atom::new_ref(x))),
+                Moo::new(Expression::Atomic(Box::new(Metadata::new()), 5.into()))
             )
         );
 
         assert_eq!(
             exprs[1],
             Expression::Eq(
-                Metadata::new(),
-                Moo::new(Expression::Atomic(Metadata::new(), Atom::new_ref(y))),
+                Box::new(Metadata::new()),
+                Moo::new(Expression::Atomic(Box::new(Metadata::new()), Atom::new_ref(y))),
                 Moo::new(Expression::UnsafeDiv(
-                    Metadata::new(),
-                    Moo::new(Expression::Atomic(Metadata::new(), Atom::new_ref(a))),
-                    Moo::new(Expression::Atomic(Metadata::new(), 2.into()))
+                    Box::new(Metadata::new()),
+                    Moo::new(Expression::Atomic(Box::new(Metadata::new()), Atom::new_ref(a))),
+                    Moo::new(Expression::Atomic(Box::new(Metadata::new()), 2.into()))
                 ))
             )
         );

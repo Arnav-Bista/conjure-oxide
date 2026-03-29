@@ -239,7 +239,7 @@ impl std::ops::Neg for IntVal {
         match self {
             IntVal::Const(val) => IntVal::Const(-val),
             IntVal::Reference(_) | IntVal::Expr(_) => {
-                IntVal::Expr(Moo::new(Expression::Neg(Metadata::new(), self.into())))
+                IntVal::Expr(Moo::new(Expression::Neg(Box::new(Metadata::new()), self.into())))
             }
         }
     }
@@ -255,7 +255,7 @@ where
         let lhs: Expression = self.into();
         let rhs: Expression = rhs.into();
         let sum = matrix_expr!(lhs, rhs; domain_int!(1..));
-        IntVal::Expr(Moo::new(Expression::Sum(Metadata::new(), Moo::new(sum))))
+        IntVal::Expr(Moo::new(Expression::Sum(Box::new(Metadata::new()), Moo::new(sum))))
     }
 }
 

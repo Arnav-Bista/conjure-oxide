@@ -43,7 +43,7 @@ fn constant_evaluator(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
         }
 
         match eval_constant(&x)
-            .map(|c| Expr::Atomic(Metadata::new(), Atom::Literal(c)))
+            .map(|c| Expr::Atomic(Box::new(Metadata::new()), Atom::Literal(c)))
             .or_else(|| run_partial_evaluator(&x).ok().map(|r| r.new_expression))
         {
             Some(new_expr) => {
@@ -76,7 +76,7 @@ fn eval_root(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
 
     match exprs.len() {
         0 => Ok(Reduction::pure(Expr::Root(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             vec![true.into()],
         ))),
         1 => Err(RuleNotApplicable),
@@ -85,7 +85,7 @@ fn eval_root(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
                 vec_op::<bool, bool>(|e| e.iter().all(|&e| e), exprs).ok_or(RuleNotApplicable)?;
 
             Ok(Reduction::pure(Expr::Root(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 vec![lit.into()],
             )))
         }

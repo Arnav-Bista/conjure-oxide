@@ -28,10 +28,10 @@ impl ACOperatorKind {
         );
         let box_expr = Moo::new(child_expr);
         match self {
-            ACOperatorKind::And => Expression::And(Metadata::new(), box_expr),
-            ACOperatorKind::Or => Expression::Or(Metadata::new(), box_expr),
-            ACOperatorKind::Product => Expression::Product(Metadata::new(), box_expr),
-            ACOperatorKind::Sum => Expression::Sum(Metadata::new(), box_expr),
+            ACOperatorKind::And => Expression::And(Box::new(Metadata::new()), box_expr),
+            ACOperatorKind::Or => Expression::Or(Box::new(Metadata::new()), box_expr),
+            ACOperatorKind::Product => Expression::Product(Box::new(Metadata::new()), box_expr),
+            ACOperatorKind::Sum => Expression::Sum(Box::new(Metadata::new()), box_expr),
         }
     }
 
@@ -94,7 +94,7 @@ impl ACOperatorKind {
                 );
                 let tail_expr_boxed = Moo::new(tail_expr);
                 let guard_expr_boxed = Moo::new(guard_expr);
-                Expression::Imply(Metadata::new(), guard_expr_boxed, tail_expr_boxed)
+                Expression::Imply(Box::new(Metadata::new()), guard_expr_boxed, tail_expr_boxed)
             }
             ACOperatorKind::Or => {
                 assert!(
@@ -102,7 +102,7 @@ impl ACOperatorKind {
                     "The tail expression in an or skipping operation should be type boolean."
                 );
                 Expression::And(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     Moo::new(matrix_expr![guard_expr, tail_expr]),
                 )
             }
@@ -113,11 +113,11 @@ impl ACOperatorKind {
                 );
                 let guard_expr_boxed = Moo::new(guard_expr);
                 Expression::UnsafeIndex(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     Moo::new(
-                        matrix_expr![Expression::Atomic(Metadata::new(),1.into()),tail_expr;Domain::int(vec![Range::Bounded(0,1)])],
+                        matrix_expr![Expression::Atomic(Box::new(Metadata::new()),1.into()),tail_expr;Domain::int(vec![Range::Bounded(0,1)])],
                     ),
-                    vec![Expression::ToInt(Metadata::new(), guard_expr_boxed)],
+                    vec![Expression::ToInt(Box::new(Metadata::new()), guard_expr_boxed)],
                 )
             }
             ACOperatorKind::Sum => {
@@ -127,9 +127,9 @@ impl ACOperatorKind {
                     "The tail expression in a sum skipping operation should be type int."
                 );
                 Expression::Product(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     Moo::new(matrix_expr![
-                        Expression::ToInt(Metadata::new(), guard_expr_boxed),
+                        Expression::ToInt(Box::new(Metadata::new()), guard_expr_boxed),
                         tail_expr
                     ]),
                 )

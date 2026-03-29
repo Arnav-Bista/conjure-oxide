@@ -251,7 +251,7 @@ fn domain_consistency_constraints(
     }
 
     let var_expr = Expr::Atomic(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Atom::Reference(Reference::new(declaration.clone())),
     );
     let mut allowed_intervals = Vec::new();
@@ -259,23 +259,23 @@ fn domain_consistency_constraints(
     for range in ranges {
         let interval = match range {
             Range::Single(v) => Expr::Eq(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Moo::new(var_expr.clone()),
                 Moo::new(Expr::from(v)),
             ),
             Range::Bounded(l, r) => {
                 let geq = Expr::Geq(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     Moo::new(var_expr.clone()),
                     Moo::new(Expr::from(l)),
                 );
                 let leq = Expr::Leq(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     Moo::new(var_expr.clone()),
                     Moo::new(Expr::from(r)),
                 );
                 Expr::And(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     Moo::new(conjure_cp::into_matrix_expr!(vec![geq, leq])),
                 )
             }
@@ -288,7 +288,7 @@ fn domain_consistency_constraints(
         allowed_intervals.remove(0)
     } else {
         Expr::Or(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(conjure_cp::into_matrix_expr!(allowed_intervals)),
         )
     };

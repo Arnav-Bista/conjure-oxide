@@ -14,10 +14,10 @@ fn subset_to_subset_eq_neq(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
             if matches!(a.as_ref().return_type(), ReturnType::Set(_))
                 && matches!(b.as_ref().return_type(), ReturnType::Set(_)) =>
         {
-            let expr1 = Expr::SubsetEq(Metadata::new(), a.clone(), b.clone());
-            let expr2 = Expr::Neq(Metadata::new(), a.clone(), b.clone());
+            let expr1 = Expr::SubsetEq(Box::new(Metadata::new()), a.clone(), b.clone());
+            let expr2 = Expr::Neq(Box::new(Metadata::new()), a.clone(), b.clone());
             Ok(Reduction::pure(Expr::And(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Moo::new(matrix_expr![expr1, expr2]),
             )))
         }

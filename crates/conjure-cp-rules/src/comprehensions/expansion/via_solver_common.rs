@@ -81,7 +81,7 @@ pub(super) fn simplify_expression(mut expr: Expression) -> Expression {
     for _ in 0..128 {
         let next = expr.clone().transform_bi(&|subexpr: Expression| {
             if let Some(lit) = eval_constant(&subexpr) {
-                return Expression::Atomic(Metadata::new(), Atom::Literal(lit));
+                return Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(lit));
             }
             if let Ok(reduction) = run_partial_evaluator(&subexpr) {
                 return reduction.new_expression;
@@ -172,7 +172,7 @@ fn maybe_bind_temp_value_letting(
     let mut decl = decl.clone();
     let old_kind = decl.kind().clone();
     let temp_kind = DeclarationKind::TemporaryValueLetting(Expression::Atomic(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Atom::Literal(lit.clone()),
     ));
     let _ = decl.replace_kind(temp_kind);

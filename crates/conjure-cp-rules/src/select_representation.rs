@@ -155,7 +155,7 @@ fn select_representation(expr: &Expr, symbols: &SymbolTable) -> ApplicationResul
 
     Ok(Reduction::with_symbols(
         Expr::Atomic(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Atom::Reference(conjure_cp::ast::Reference::new(decl_ptr)),
         ),
         symbols,

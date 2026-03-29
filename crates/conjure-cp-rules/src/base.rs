@@ -67,7 +67,7 @@ fn remove_empty_expression(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
         Expr::And(_, _) => essence_expr!(true),
         _ => {
             return Err(ApplicationError::RuleNotApplicable);
-        } // _ => And(Metadata::new(), Box::new(matrix_expr![])),
+        } // _ => And(Box::new(Metadata::new()), Box::new(matrix_expr![])),
     };
 
     Ok(Reduction::pure(new_expr))
@@ -93,7 +93,7 @@ fn min_to_var(expr: &Expr, symbols: &SymbolTable) -> ApplicationResult {
     let mut symbols = symbols.clone();
 
     let atom_inner = Atom::new_ref(symbols.gensym(&domain));
-    let atom_expr = Expr::Atomic(Metadata::new(), atom_inner);
+    let atom_expr = Expr::Atomic(Box::new(Metadata::new()), atom_inner);
 
     let mut new_top = Vec::new();
     let mut disjunction = Vec::new();
@@ -104,7 +104,7 @@ fn min_to_var(expr: &Expr, symbols: &SymbolTable) -> ApplicationResult {
     }
     // TODO: deal with explicit index domains
     new_top.push(Expr::Or(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(into_matrix_expr![disjunction]),
     ));
 
@@ -136,7 +136,7 @@ fn max_to_var(expr: &Expr, symbols: &SymbolTable) -> ApplicationResult {
     let mut symbols: SymbolTable = symbols.clone();
 
     let atom_inner = Atom::new_ref(symbols.gensym(&domain));
-    let atom_expr = Expr::Atomic(Metadata::new(), atom_inner);
+    let atom_expr = Expr::Atomic(Box::new(Metadata::new()), atom_inner);
 
     let mut new_top = Vec::new(); // the new variable must be more than or equal to all the other variables
     let mut disjunction = Vec::new(); // the new variable must more than or equal to one of the variables
@@ -146,7 +146,7 @@ fn max_to_var(expr: &Expr, symbols: &SymbolTable) -> ApplicationResult {
     }
     // FIXME: deal with explicitly given domains
     new_top.push(Expr::Or(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(into_matrix_expr![disjunction]),
     ));
 

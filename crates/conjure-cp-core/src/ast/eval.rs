@@ -613,9 +613,9 @@ pub fn eval_constant(expr: &Expr) -> Option<Lit> {
             })?;
             Some(lt.into())
         }
-        Expr::LexGt(_, a, b) => eval_constant(&Expr::LexLt(Metadata::new(), b.clone(), a.clone())),
+        Expr::LexGt(_, a, b) => eval_constant(&Expr::LexLt(Box::new(Metadata::new()), b.clone(), a.clone())),
         Expr::LexGeq(_, a, b) => {
-            eval_constant(&Expr::LexLeq(Metadata::new(), b.clone(), a.clone()))
+            eval_constant(&Expr::LexLeq(Box::new(Metadata::new()), b.clone(), a.clone()))
         }
         Expr::FlatLexLt(_, a, b) => {
             let lt = atoms_pairs_op::<i32, _>(a, b, |pairs, (a_len, b_len)| {

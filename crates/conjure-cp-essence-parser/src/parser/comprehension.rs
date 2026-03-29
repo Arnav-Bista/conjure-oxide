@@ -92,7 +92,7 @@ pub fn parse_comprehension(
     let comprehension = builder.with_return_value(return_expr, Some(ACOperatorKind::And));
 
     Ok(Some(Expression::Comprehension(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(comprehension),
     )))
 }
@@ -199,28 +199,28 @@ pub fn parse_quantifier_or_aggregate_expr(
 
     // Build the comprehension
     let comprehension = builder.with_return_value(expression, Some(ac_operator_kind));
-    let wrapped_comprehension = Expression::Comprehension(Metadata::new(), Moo::new(comprehension));
+    let wrapped_comprehension = Expression::Comprehension(Box::new(Metadata::new()), Moo::new(comprehension));
 
     // Wrap in the appropriate expression type
     match wrapper {
         "And" => Ok(Some(Expression::And(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(wrapped_comprehension),
         ))),
         "Or" => Ok(Some(Expression::Or(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(wrapped_comprehension),
         ))),
         "Sum" => Ok(Some(Expression::Sum(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(wrapped_comprehension),
         ))),
         "Min" => Ok(Some(Expression::Min(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(wrapped_comprehension),
         ))),
         "Max" => Ok(Some(Expression::Max(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(wrapped_comprehension),
         ))),
         _ => unreachable!(),

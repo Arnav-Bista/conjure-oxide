@@ -31,10 +31,10 @@ fn literal_sat_direct_int(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
     };
 
     Ok(Reduction::pure(Expr::SATInt(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         SATIntEncoding::Direct,
         Moo::new(into_matrix_expr!(vec![Expr::Atomic(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Atom::Literal(Literal::Bool(true)),
         )])),
         (value, value),
@@ -84,7 +84,7 @@ pub fn validate_direct_int_operands(
 
             // add 0s to start
             bits.extend(std::iter::repeat_n(
-                Expr::Atomic(Metadata::new(), Atom::Literal(Literal::Bool(false))),
+                Expr::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Bool(false))),
                 prefix_len,
             ));
 
@@ -92,7 +92,7 @@ pub fn validate_direct_int_operands(
 
             // add 0s to end
             bits.extend(std::iter::repeat_n(
-                Expr::Atomic(Metadata::new(), Atom::Literal(Literal::Bool(false))),
+                Expr::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Bool(false))),
                 postfix_len,
             ));
 
@@ -242,8 +242,8 @@ fn sat_direct_lt(
     clauses: &mut Vec<CnfClause>,
     symbols: &mut SymbolTable,
 ) -> Expr {
-    let mut b_or = Expr::Atomic(Metadata::new(), Atom::Literal(Literal::Bool(false)));
-    let mut cum_result = Expr::Atomic(Metadata::new(), Atom::Literal(Literal::Bool(false)));
+    let mut b_or = Expr::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Bool(false)));
+    let mut cum_result = Expr::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Bool(false)));
 
     for (a_i, b_i) in a.iter().zip(b.iter()) {
         // b_or is prefix_or of b up to index i: B_i = b_0 | ... | b_i
@@ -284,7 +284,7 @@ fn neg_sat_direct(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
     out.reverse();
 
     Ok(Reduction::pure(Expr::SATInt(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         SATIntEncoding::Direct,
         Moo::new(into_matrix_expr!(out)),
         (new_min, new_max),
@@ -350,7 +350,7 @@ fn safediv_sat_direct(expr: &Expr, symbols: &SymbolTable) -> ApplicationResult {
     for _ in quot_min..=quot_max {
         let decl = new_symbols.gensym(&conjure_cp::ast::Domain::bool());
         quot_bits.push(Expr::Atomic(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Atom::Reference(conjure_cp::ast::Reference::new(decl)),
         ));
     }
@@ -368,8 +368,8 @@ fn safediv_sat_direct(expr: &Expr, symbols: &SymbolTable) -> ApplicationResult {
             let quot_bit = &quot_bits[(k - quot_min) as usize];
 
             new_clauses.push(CnfClause::new(vec![
-                Expr::Not(Metadata::new(), Moo::new(numer_bit.clone())),
-                Expr::Not(Metadata::new(), Moo::new(denom_bit.clone())),
+                Expr::Not(Box::new(Metadata::new()), Moo::new(numer_bit.clone())),
+                Expr::Not(Box::new(Metadata::new()), Moo::new(denom_bit.clone())),
                 quot_bit.clone(),
             ]));
         }
@@ -379,14 +379,14 @@ fn safediv_sat_direct(expr: &Expr, symbols: &SymbolTable) -> ApplicationResult {
     for a in 0..quot_bits.len() {
         for b in (a + 1)..quot_bits.len() {
             new_clauses.push(CnfClause::new(vec![
-                Expr::Not(Metadata::new(), Moo::new(quot_bits[a].clone())),
-                Expr::Not(Metadata::new(), Moo::new(quot_bits[b].clone())),
+                Expr::Not(Box::new(Metadata::new()), Moo::new(quot_bits[a].clone())),
+                Expr::Not(Box::new(Metadata::new()), Moo::new(quot_bits[b].clone())),
             ]));
         }
     }
 
     let quot_int = Expr::SATInt(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         SATIntEncoding::Direct,
         Moo::new(into_matrix_expr!(quot_bits)),
         (quot_min, quot_max),

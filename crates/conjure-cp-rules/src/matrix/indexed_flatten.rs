@@ -44,6 +44,6 @@ fn indexed_flatten_matrix(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
 
     // This must be unsafe since we are using a possibly unsafe flat index.
     // TODO: this can be made safe if matrix::flat_index_to_full_index fails out of bounds
-    let new_expr = Expr::UnsafeIndex(Metadata::new(), matrix.clone(), flat_index);
+    let new_expr = Expr::UnsafeIndex(Box::new(Metadata::new()), matrix.clone(), flat_index);
     Ok(Reduction::pure(new_expr))
 }

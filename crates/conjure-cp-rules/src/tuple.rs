@@ -99,21 +99,21 @@ fn tuple_index_to_bubble(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
     let index = indices[0].clone();
 
     let bubble_constraint = Moo::new(Expression::And(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(matrix_expr![
             Expression::Leq(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Moo::new(index.clone()),
                 Moo::new(Expression::Atomic(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     Atom::Literal(Literal::Int(elems.len() as i32))
                 ))
             ),
             Expression::Geq(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Moo::new(index),
                 Moo::new(Expression::Atomic(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     Atom::Literal(Literal::Int(1))
                 ))
             )
@@ -121,13 +121,13 @@ fn tuple_index_to_bubble(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
     ));
 
     let new_expr = Moo::new(Expression::SafeIndex(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         subject.clone(),
         indices.clone(),
     ));
 
     Ok(Reduction::pure(Expression::Bubble(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         new_expr,
         bubble_constraint,
     )))
@@ -189,31 +189,31 @@ fn tuple_equality(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
     let mut equality_constraints = vec![];
     for i in 0..elems.len() {
         let left_elem = Expression::SafeIndex(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::clone(left),
             vec![Expression::Atomic(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Atom::Literal(Literal::Int((i + 1) as i32)),
             )],
         );
         let right_elem = Expression::SafeIndex(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::clone(right),
             vec![Expression::Atomic(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Atom::Literal(Literal::Int((i + 1) as i32)),
             )],
         );
 
         equality_constraints.push(Expression::Eq(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(left_elem),
             Moo::new(right_elem),
         ));
     }
 
     let new_expr = Expression::And(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(into_matrix_expr!(equality_constraints)),
     );
 
@@ -260,31 +260,31 @@ fn tuple_to_constant(expr: &Expr, symbols: &SymbolTable) -> ApplicationResult {
     let mut equality_constraints = vec![];
     for i in 0..elems.len() {
         let left_elem = Expression::SafeIndex(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::clone(left),
             vec![Expression::Atomic(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Atom::Literal(Literal::Int((i + 1) as i32)),
             )],
         );
         let right_elem = Expression::SafeIndex(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::clone(right),
             vec![Expression::Atomic(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Atom::Literal(Literal::Int((i + 1) as i32)),
             )],
         );
 
         equality_constraints.push(Expression::Eq(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(left_elem),
             Moo::new(right_elem),
         ));
     }
 
     let new_expr = Expression::And(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(into_matrix_expr!(equality_constraints)),
     );
 
@@ -347,24 +347,24 @@ fn tuple_inequality(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
     let mut equality_constraints = vec![];
     for i in 0..elems.len() {
         let left_elem = Expression::SafeIndex(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::clone(left),
             vec![Expression::Atomic(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Atom::Literal(Literal::Int((i + 1) as i32)),
             )],
         );
         let right_elem = Expression::SafeIndex(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::clone(right),
             vec![Expression::Atomic(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Atom::Literal(Literal::Int((i + 1) as i32)),
             )],
         );
 
         equality_constraints.push(Expression::Eq(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(left_elem),
             Moo::new(right_elem),
         ));
@@ -372,9 +372,9 @@ fn tuple_inequality(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
 
     // Just copied from Conjure, would it be better to DeMorgan this?
     let new_expr = Expression::Not(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(Expression::And(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(into_matrix_expr!(equality_constraints)),
         )),
     );

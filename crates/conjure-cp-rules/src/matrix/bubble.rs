@@ -46,7 +46,7 @@ fn index_to_bubble(expr: &Expression, _: &SymbolTable) -> ApplicationResult {
         izip!(index_domains, indices)
             .map(|(domain, index)| {
                 Expression::InDomain(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     Moo::new(index.clone()),
                     DomainPtr::from(domain.clone()),
                 )
@@ -55,15 +55,15 @@ fn index_to_bubble(expr: &Expression, _: &SymbolTable) -> ApplicationResult {
     ]);
 
     let new_expr = Moo::new(Expression::SafeIndex(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         subject.clone(),
         indices.clone(),
     ));
 
     Ok(Reduction::pure(Expression::Bubble(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         new_expr,
-        Moo::new(Expression::And(Metadata::new(), bubble_constraints)),
+        Moo::new(Expression::And(Box::new(Metadata::new()), bubble_constraints)),
     )))
 }
 
@@ -103,7 +103,7 @@ fn slice_to_bubble(expr: &Expression, _: &SymbolTable) -> ApplicationResult {
                     // TODO(perf): This pattern of "take something with a ground domain G and re-wrap it in Moo(Domain::Ground(G))" is fairly common...
                     .map(|index| {
                         Expression::InDomain(
-                            Metadata::new(),
+                            Box::new(Metadata::new()),
                             Moo::new(index),
                             DomainPtr::from(domain.clone()),
                         )
@@ -113,14 +113,14 @@ fn slice_to_bubble(expr: &Expression, _: &SymbolTable) -> ApplicationResult {
     ]);
 
     let new_expr = Moo::new(Expression::SafeSlice(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         subject.clone(),
         indices.clone(),
     ));
 
     Ok(Reduction::pure(Expression::Bubble(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         new_expr,
-        Moo::new(Expression::And(Metadata::new(), bubble_constraints)),
+        Moo::new(Expression::And(Box::new(Metadata::new()), bubble_constraints)),
     )))
 }

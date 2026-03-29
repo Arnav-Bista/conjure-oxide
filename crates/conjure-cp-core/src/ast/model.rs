@@ -51,7 +51,7 @@ fn default_context() -> Arc<RwLock<Context<'static>>> {
 impl Model {
     fn new_empty(symbols: SymbolTablePtr, context: Arc<RwLock<Context<'static>>>) -> Model {
         Model {
-            constraints: Moo::new(Expression::Root(Metadata::new(), vec![])),
+            constraints: Moo::new(Expression::Root(Box::new(Metadata::new()), vec![])),
             symbols,
             cnf_clauses: Vec::new(),
             search_order: None,
@@ -179,9 +179,9 @@ impl Model {
     pub fn into_single_expression(self) -> Expression {
         let constraints = self.constraints().clone();
         match constraints.len() {
-            0 => Expression::Atomic(Metadata::new(), Atom::Literal(Literal::Bool(true))),
+            0 => Expression::Atomic(Box::new(Metadata::new()), Atom::Literal(Literal::Bool(true))),
             1 => constraints[0].clone(),
-            _ => Expression::And(Metadata::new(), Moo::new(into_matrix_expr![constraints])),
+            _ => Expression::And(Box::new(Metadata::new()), Moo::new(into_matrix_expr![constraints])),
         }
     }
 

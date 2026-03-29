@@ -135,7 +135,7 @@ impl AbstractLiteral<Expression> {
                 let mut new_index_domain = vec![];
 
                 // flatten index domains of n-d matrix into list
-                let mut e = Expression::AbstractLiteral(Metadata::new(), self.clone());
+                let mut e = Expression::AbstractLiteral(Box::new(Metadata::new()), self.clone());
                 while let Expression::AbstractLiteral(_, AbstractLiteral::Matrix(elems, idx)) = e {
                     assert!(
                         idx.as_matrix().is_none(),

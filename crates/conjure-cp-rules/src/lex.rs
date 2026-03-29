@@ -58,8 +58,8 @@ fn flatten_lex_lt_leq(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
     let new_expr = if atoms_a.len() == atoms_b.len() {
         // Same length, keep the same comparator
         match expr {
-            Expr::LexLt(..) => Expr::FlatLexLt(Metadata::new(), atoms_a, atoms_b),
-            Expr::LexLeq(..) => Expr::FlatLexLeq(Metadata::new(), atoms_a, atoms_b),
+            Expr::LexLt(..) => Expr::FlatLexLt(Box::new(Metadata::new()), atoms_a, atoms_b),
+            Expr::LexLeq(..) => Expr::FlatLexLeq(Box::new(Metadata::new()), atoms_a, atoms_b),
             _ => unreachable!(),
         }
     } else {
@@ -73,8 +73,8 @@ fn flatten_lex_lt_leq(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
         atoms_b.truncate(min_len);
 
         match first_longer {
-            true => Expr::FlatLexLt(Metadata::new(), atoms_a, atoms_b),
-            false => Expr::FlatLexLeq(Metadata::new(), atoms_a, atoms_b),
+            true => Expr::FlatLexLt(Box::new(Metadata::new()), atoms_a, atoms_b),
+            false => Expr::FlatLexLeq(Box::new(Metadata::new()), atoms_a, atoms_b),
         }
     };
 

@@ -193,7 +193,7 @@ pub fn to_aux_var(expr: &Expr, symbols: &SymbolTable) -> Option<ToAuxVarOutput> 
     Some(ToAuxVarOutput {
         aux_declaration: decl.clone(),
         aux_expression: Expr::AuxDeclaration(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             conjure_cp::ast::Reference::new(decl),
             Moo::new(expr.clone()),
         ),
@@ -222,7 +222,7 @@ impl ToAuxVarOutput {
     ///
     /// This expression will have default `Metadata`.
     pub fn as_expr(&self) -> Expr {
-        Expr::Atomic(Metadata::new(), self.as_atom())
+        Expr::Atomic(Box::new(Metadata::new()), self.as_atom())
     }
 
     /// Returns the top level `Expression` to add to the model.

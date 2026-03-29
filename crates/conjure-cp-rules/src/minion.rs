@@ -110,7 +110,7 @@ fn introduce_producteq(expr: &Expr, symbols: &SymbolTable) -> ApplicationResult 
         // TODO: find this domain without having to make unnecessary Expr and Metadata objects
         // Just using the domain of expr doesn't work
         let aux_domain = Expr::Product(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(matrix_expr![y.clone().into(), next_factor]),
         )
         .domain_of()
@@ -120,7 +120,7 @@ fn introduce_producteq(expr: &Expr, symbols: &SymbolTable) -> ApplicationResult 
         let aux_var = Atom::Reference(Reference::new(aux_decl));
 
         let new_top_expr = Expr::FlatProductEq(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(y),
             Moo::new(next_factor_atom),
             Moo::new(aux_var.clone()),
@@ -131,7 +131,7 @@ fn introduce_producteq(expr: &Expr, symbols: &SymbolTable) -> ApplicationResult 
     }
 
     Ok(Reduction::new(
-        Expr::FlatProductEq(Metadata::new(), Moo::new(x), Moo::new(y), Moo::new(val)),
+        Expr::FlatProductEq(Box::new(Metadata::new()), Moo::new(x), Moo::new(y), Moo::new(val)),
         new_tops,
         symbols,
     ))
@@ -350,32 +350,32 @@ fn introduce_weighted_sumleq_sumgeq(expr: &Expr, symtab: &SymbolTable) -> Applic
 
     let new_expr: Expr = match (equality_kind, use_weighted_sum) {
         (EqualityKind::Eq, true) => Expr::And(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(matrix_expr![
                 Expr::FlatWeightedSumLeq(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     coefficients.clone(),
                     vars.clone(),
                     Moo::new(total.clone()),
                 ),
-                Expr::FlatWeightedSumGeq(Metadata::new(), coefficients, vars, Moo::new(total)),
+                Expr::FlatWeightedSumGeq(Box::new(Metadata::new()), coefficients, vars, Moo::new(total)),
             ]),
         ),
         (EqualityKind::Eq, false) => Expr::And(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(matrix_expr![
-                Expr::FlatSumLeq(Metadata::new(), vars.clone(), total.clone()),
-                Expr::FlatSumGeq(Metadata::new(), vars, total),
+                Expr::FlatSumLeq(Box::new(Metadata::new()), vars.clone(), total.clone()),
+                Expr::FlatSumGeq(Box::new(Metadata::new()), vars, total),
             ]),
         ),
         (EqualityKind::Leq, true) => {
-            Expr::FlatWeightedSumLeq(Metadata::new(), coefficients, vars, Moo::new(total))
+            Expr::FlatWeightedSumLeq(Box::new(Metadata::new()), coefficients, vars, Moo::new(total))
         }
-        (EqualityKind::Leq, false) => Expr::FlatSumLeq(Metadata::new(), vars, total),
+        (EqualityKind::Leq, false) => Expr::FlatSumLeq(Box::new(Metadata::new()), vars, total),
         (EqualityKind::Geq, true) => {
-            Expr::FlatWeightedSumGeq(Metadata::new(), coefficients, vars, Moo::new(total))
+            Expr::FlatWeightedSumGeq(Box::new(Metadata::new()), coefficients, vars, Moo::new(total))
         }
-        (EqualityKind::Geq, false) => Expr::FlatSumGeq(Metadata::new(), vars, total),
+        (EqualityKind::Geq, false) => Expr::FlatSumGeq(Box::new(Metadata::new()), vars, total),
     };
 
     Ok(Reduction::new(new_expr, new_top_exprs, symtab))
@@ -448,7 +448,7 @@ fn flatten_weighted_sum_term(
                     let mut product_terms = Vec::from(rest);
                     product_terms.push(e.clone());
                     let product =
-                        Expr::Product(Metadata::new(), Moo::new(into_matrix_expr!(product_terms)));
+                        Expr::Product(Box::new(Metadata::new()), Moo::new(into_matrix_expr!(product_terms)));
                     Ok((
                         *coeff,
                         flatten_expression_to_atom(product, symtab, top_level_exprs)?,
@@ -459,7 +459,7 @@ fn flatten_weighted_sum_term(
                 // product([x,y,z]) ~~> (1,product([x,y,z])
                 _ => {
                     let product =
-                        Expr::Product(Metadata::new(), Moo::new(into_matrix_expr!(factors)));
+                        Expr::Product(Box::new(Metadata::new()), Moo::new(into_matrix_expr!(factors)));
                     Ok((
                         1,
                         flatten_expression_to_atom(product, symtab, top_level_exprs)?,
@@ -518,7 +518,7 @@ fn introduce_diveq(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
     // div = val
     let val: Atom;
     let div: Moo<Expr>;
-    let meta: Metadata;
+    let meta: Box<Metadata>;
 
     match expr.clone() {
         Expr::Eq(m, a, b) => {
@@ -570,7 +570,7 @@ fn introduce_modeq(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
     // div = val
     let val: Atom;
     let div: Moo<Expr>;
-    let meta: Metadata;
+    let meta: Box<Metadata>;
 
     match expr.clone() {
         Expr::Eq(m, a, b) => {
@@ -651,7 +651,7 @@ fn introduce_abseq(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
     let y: Atom = y.try_into().or(Err(RuleNotApplicable))?;
 
     Ok(Reduction::pure(Expr::FlatAbsEq(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(x),
         Moo::new(y),
     )))
@@ -685,7 +685,7 @@ fn introduce_poweq(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
         .or(Err(RuleNotApplicable))?;
 
     Ok(Reduction::pure(Expr::MinionPow(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(a),
         Moo::new(b),
         Moo::new(total),
@@ -709,7 +709,7 @@ fn introduce_flat_alldiff(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
         })
         .process_results(|iter| iter.collect_vec())?;
 
-    Ok(Reduction::pure(Expr::FlatAllDiff(Metadata::new(), atoms)))
+    Ok(Reduction::pure(Expr::FlatAllDiff(Box::new(Metadata::new()), atoms)))
 }
 
 /// Introduces a Minion `MinusEq` constraint from `x = -y`, where x and y are atoms.
@@ -742,7 +742,7 @@ fn introduce_minuseq_from_eq(expr: &Expr, _: &SymbolTable) -> ApplicationResult 
     };
 
     Ok(Reduction::pure(Expr::FlatMinusEq(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(x),
         Moo::new(y),
     )))
@@ -774,7 +774,7 @@ fn introduce_minuseq_from_aux_decl(expr: &Expr, _: &SymbolTable) -> ApplicationR
     };
 
     Ok(Reduction::pure(Expr::FlatMinusEq(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         Moo::new(a),
         Moo::new(b),
     )))
@@ -802,14 +802,14 @@ fn introduce_reifyimply_ineq_from_imply(expr: &Expr, _: &SymbolTable) -> Applica
     // if only x is an atom, x -> y ~> reifyimply(y,x)
     if let Ok(y_atom) = TryInto::<&Atom>::try_into(y.as_ref()) {
         Ok(Reduction::pure(Expr::FlatIneq(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(x_atom.clone()),
             Moo::new(y_atom.clone()),
             Box::new(0.into()),
         )))
     } else {
         Ok(Reduction::pure(Expr::MinionReifyImply(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             y.clone(),
             x_atom.clone(),
         )))
@@ -852,7 +852,7 @@ fn introduce_wininterval_set_from_indomain(expr: &Expr, _: &SymbolTable) -> Appl
     }
 
     Ok(Reduction::pure(Expr::MinionWInIntervalSet(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         atom.clone(),
         out_ranges,
     )))
@@ -906,7 +906,7 @@ fn introduce_element_from_index(expr: &Expr, _: &SymbolTable) -> ApplicationResu
     }
 
     Ok(Reduction::pure(Expr::MinionElementOne(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         atom_list,
         Moo::new(index),
         Moo::new(equalto),
@@ -1075,7 +1075,7 @@ fn flatten_product(expr: &Expr, symtab: &SymbolTable) -> ApplicationResult {
 
     for factor in factors {
         new_factors.push(Expr::Atomic(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             flatten_expression_to_atom(factor, &mut symtab, &mut top_level_exprs)?,
         ));
     }
@@ -1086,7 +1086,7 @@ fn flatten_product(expr: &Expr, symtab: &SymbolTable) -> ApplicationResult {
         return Err(RuleNotApplicable);
     }
 
-    let new_expr = Expr::Product(Metadata::new(), Moo::new(into_matrix_expr![new_factors]));
+    let new_expr = Expr::Product(Box::new(Metadata::new()), Moo::new(into_matrix_expr![new_factors]));
     Ok(Reduction::new(new_expr, top_level_exprs, symtab))
 }
 
@@ -1171,12 +1171,12 @@ fn flatten_matrix_literal(expr: &Expr, symtab: &SymbolTable) -> ApplicationResul
                 let decl = symbols.gensym(&domain);
 
                 top_level_exprs.push(Expr::AuxDeclaration(
-                    Metadata::new(),
+                    Box::new(Metadata::new()),
                     Reference::new(decl.clone()),
                     Moo::new(e.clone()),
                 ));
 
-                *e = Expr::Atomic(Metadata::new(), Atom::Reference(Reference::new(decl)));
+                *e = Expr::Atomic(Box::new(Metadata::new()), Atom::Reference(Reference::new(decl)));
 
                 has_changed = true;
             }
@@ -1420,7 +1420,7 @@ fn bool_eq_to_reify(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
         return Err(RuleNotApplicable);
     };
 
-    Ok(Reduction::pure(Expr::MinionReify(Metadata::new(), e, atom)))
+    Ok(Reduction::pure(Expr::MinionReify(Box::new(Metadata::new()), e, atom)))
 }
 
 /// Converts an iff to an `Eq` constraint.
@@ -1436,7 +1436,7 @@ fn iff_to_eq(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
     };
 
     Ok(Reduction::pure(Expr::Eq(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         x.clone(),
         y.clone(),
     )))

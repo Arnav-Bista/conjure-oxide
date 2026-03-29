@@ -202,8 +202,8 @@ impl DeclarationPtr {
     /// use conjure_cp_core::{matrix_expr,ast::Metadata};
     ///
     /// // letting n be 10 + 10
-    /// let ten = Expression::Atomic(Metadata::new(),Atom::Literal(Literal::Int(10)));
-    /// let expression = Expression::Sum(Metadata::new(),Moo::new(matrix_expr![ten.clone(),ten]));
+    /// let ten = Expression::Atomic(Box::new(Metadata::new()),Atom::Literal(Literal::Int(10)));
+    /// let expression = Expression::Sum(Box::new(Metadata::new()),Moo::new(matrix_expr![ten.clone(),ten]));
     /// let declaration = DeclarationPtr::new_value_letting(
     ///     Name::User("n".into()),
     ///     expression);
@@ -224,8 +224,8 @@ impl DeclarationPtr {
     /// use conjure_cp_core::{matrix_expr};
     ///
     /// // letting n be 10 + 10
-    /// let ten = Expression::Atomic(Metadata::new(),Atom::Literal(Literal::Int(10)));
-    /// let expression = Expression::Sum(Metadata::new(),Moo::new(matrix_expr![ten.clone(),ten]));
+    /// let ten = Expression::Atomic(Box::new(Metadata::new()),Atom::Literal(Literal::Int(10)));
+    /// let expression = Expression::Sum(Box::new(Metadata::new()),Moo::new(matrix_expr![ten.clone(),ten]));
     /// let domain = Domain::bool();
     /// let declaration = DeclarationPtr::new_value_letting_with_domain(
     ///     Name::User("n".into()),

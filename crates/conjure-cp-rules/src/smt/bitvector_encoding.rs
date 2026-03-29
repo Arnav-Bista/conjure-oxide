@@ -27,7 +27,7 @@ fn fold_list_exprs_pairwise(expr: &Expression, _: &SymbolTable) -> ApplicationRe
 
 fn fold_list_pairwise(
     exprs: &Expression,
-    op: impl Fn(Metadata, Moo<Expression>, Moo<Expression>) -> Expression,
+    op: impl Fn(Box<Metadata>, Moo<Expression>, Moo<Expression>) -> Expression,
 ) -> ApplicationResult {
     exprs
         .clone()

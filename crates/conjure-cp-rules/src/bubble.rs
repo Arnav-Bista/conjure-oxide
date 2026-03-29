@@ -29,7 +29,7 @@ fn expand_bubble(expr: &Expression, _: &SymbolTable) -> ApplicationResult {
             let a = Moo::unwrap_or_clone(Moo::clone(a));
             let b = Moo::unwrap_or_clone(Moo::clone(b));
             Ok(Reduction::pure(Expression::And(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Moo::new(matrix_expr![a, b]),
             )))
         }
@@ -80,7 +80,7 @@ fn bubble_up(expr: &Expression, syms: &SymbolTable) -> ApplicationResult {
         Err(ApplicationError::RuleNotApplicable)
     } else if bubbled_conditions.len() == 1 {
         let new_expr = Expression::Bubble(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(expr.with_children(sub)),
             Moo::new(bubbled_conditions[0].clone()),
         );
@@ -88,10 +88,10 @@ fn bubble_up(expr: &Expression, syms: &SymbolTable) -> ApplicationResult {
         Ok(Reduction::pure(new_expr))
     } else {
         Ok(Reduction::pure(Expression::Bubble(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(expr.with_children(sub)),
             Moo::new(Expression::And(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Moo::new(into_matrix_expr![bubbled_conditions]),
             )),
         )))
@@ -122,10 +122,10 @@ fn div_to_bubble(expr: &Expression, _: &SymbolTable) -> ApplicationResult {
         }
 
         return Ok(Reduction::pure(Expression::Bubble(
-            Metadata::new(),
-            Moo::new(Expression::SafeDiv(Metadata::new(), a.clone(), b.clone())),
+            Box::new(Metadata::new()),
+            Moo::new(Expression::SafeDiv(Box::new(Metadata::new()), a.clone(), b.clone())),
             Moo::new(Expression::Neq(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 b.clone(),
                 Moo::new(Expression::from(0)),
             )),
@@ -156,10 +156,10 @@ fn mod_to_bubble(expr: &Expression, _: &SymbolTable) -> ApplicationResult {
         }
 
         return Ok(Reduction::pure(Expression::Bubble(
-            Metadata::new(),
-            Moo::new(Expression::SafeMod(Metadata::new(), a.clone(), b.clone())),
+            Box::new(Metadata::new()),
+            Moo::new(Expression::SafeMod(Box::new(Metadata::new()), a.clone(), b.clone())),
             Moo::new(Expression::Neq(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 b.clone(),
                 Moo::new(Expression::from(0)),
             )),
@@ -190,28 +190,28 @@ fn pow_to_bubble(expr: &Expression, _: &SymbolTable) -> ApplicationResult {
         }
 
         return Ok(Reduction::pure(Expression::Bubble(
-            Metadata::new(),
-            Moo::new(Expression::SafePow(Metadata::new(), a.clone(), b.clone())),
+            Box::new(Metadata::new()),
+            Moo::new(Expression::SafePow(Box::new(Metadata::new()), a.clone(), b.clone())),
             Moo::new(Expression::And(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 Moo::new(matrix_expr![
                     Expression::Or(
-                        Metadata::new(),
+                        Box::new(Metadata::new()),
                         Moo::new(matrix_expr![
                             Expression::Neq(
-                                Metadata::new(),
+                                Box::new(Metadata::new()),
                                 a,
                                 Moo::new(Atom::Literal(Literal::Int(0)).into()),
                             ),
                             Expression::Neq(
-                                Metadata::new(),
+                                Box::new(Metadata::new()),
                                 b.clone(),
                                 Moo::new(Atom::Literal(Literal::Int(0)).into()),
                             ),
                         ]),
                     ),
                     Expression::Geq(
-                        Metadata::new(),
+                        Box::new(Metadata::new()),
                         b,
                         Moo::new(Atom::Literal(Literal::Int(0)).into()),
                     ),

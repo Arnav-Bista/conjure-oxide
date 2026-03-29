@@ -1,6 +1,5 @@
 // Supset rule for sets
-use conjure_cp::ast::Metadata;
-use conjure_cp::ast::{Expression as Expr, ReturnType, SymbolTable, Typeable};
+use conjure_cp::ast::{Expression as Expr, Metadata, ReturnType, SymbolTable, Typeable};
 use conjure_cp::rule_engine::Reduction;
 use conjure_cp::rule_engine::{
     ApplicationError::RuleNotApplicable, ApplicationResult, register_rule,
@@ -14,7 +13,7 @@ fn supset_to_subset(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
                 && matches!(b.as_ref().return_type(), ReturnType::Set(_)) =>
         {
             Ok(Reduction::pure(Expr::Subset(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 b.clone(),
                 a.clone(),
             )))

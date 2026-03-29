@@ -46,14 +46,14 @@ fn unwrap_alldiff(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
                 })
                 .collect::<Result<Vec<_>, _>>()?;
             let occurences_list = Expr::AbstractLiteral(
-                Metadata::new(),
+                Box::new(Metadata::new()),
                 AbstractLiteral::matrix_implied_indices(occurences),
             );
             Ok(essence_expr!("sum(&occurences_list) <= 1"))
         })
         .collect::<Result<Vec<_>, _>>()?;
     let clauses_list = Expr::AbstractLiteral(
-        Metadata::new(),
+        Box::new(Metadata::new()),
         AbstractLiteral::matrix_implied_indices(clauses),
     );
 

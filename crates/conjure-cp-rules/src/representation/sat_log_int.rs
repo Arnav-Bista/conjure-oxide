@@ -142,7 +142,7 @@ impl Representation for SATLogInt {
                     // Machine names are used so that the derived ordering matches the correct ordering of the representation variables
                     Name::Machine(index as i32),
                     Expression::Atomic(
-                        Metadata::new(),
+                        Box::new(Metadata::new()),
                         Atom::Reference(conjure_cp::ast::Reference { ptr: decl }),
                     ),
                 )

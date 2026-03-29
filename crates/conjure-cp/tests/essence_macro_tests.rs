@@ -11,10 +11,10 @@ fn test_2plus2() {
     assert_eq!(
         expr,
         Expression::Sum(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(matrix_expr![
-                Expression::Atomic(Metadata::new(), 2.into()),
-                Expression::Atomic(Metadata::new(), 2.into());
+                Expression::Atomic(Box::new(Metadata::new()), 2.into()),
+                Expression::Atomic(Box::new(Metadata::new()), 2.into());
                 domain_int!(1..)
             ])
         )
@@ -28,10 +28,10 @@ fn test_metavar_const() {
     assert_eq!(
         expr,
         Expression::Sum(
-            Metadata::new(),
+            Box::new(Metadata::new()),
             Moo::new(matrix_expr![
-                Expression::Atomic(Metadata::new(), 4.into()),
-                Expression::Atomic(Metadata::new(), 2.into());
+                Expression::Atomic(Box::new(Metadata::new()), 4.into()),
+                Expression::Atomic(Box::new(Metadata::new()), 2.into());
                 domain_int!(1..)
             ])
         )

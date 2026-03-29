@@ -14,8 +14,8 @@ fn neq_not_eq_sets(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
                 && matches!(b.as_ref().return_type(), ReturnType::Set(_)) =>
         {
             Ok(Reduction::pure(Expr::Not(
-                Metadata::new(),
-                Moo::new(Expr::Eq(Metadata::new(), b.clone(), a.clone())),
+                Box::new(Metadata::new()),
+                Moo::new(Expr::Eq(Box::new(Metadata::new()), b.clone(), a.clone())),
             )))
         }
         _ => Err(RuleNotApplicable),

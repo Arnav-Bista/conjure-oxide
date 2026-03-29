@@ -18,10 +18,10 @@ fn subseteq_intersect(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
                     if matches!(b.as_ref().return_type(), ReturnType::Set(_))
                         && matches!(c.as_ref().return_type(), ReturnType::Set(_)) =>
                 {
-                    let expr1 = Expr::SubsetEq(Metadata::new(), a.clone(), b.clone());
-                    let expr2 = Expr::SubsetEq(Metadata::new(), a.clone(), c.clone());
+                    let expr1 = Expr::SubsetEq(Box::new(Metadata::new()), a.clone(), b.clone());
+                    let expr2 = Expr::SubsetEq(Box::new(Metadata::new()), a.clone(), c.clone());
                     Ok(Reduction::pure(Expr::And(
-                        Metadata::new(),
+                        Box::new(Metadata::new()),
                         Moo::new(matrix_expr![expr1, expr2]),
                     )))
                 }
@@ -42,10 +42,10 @@ fn union_subseteq(expr: &Expr, _: &SymbolTable) -> ApplicationResult {
                     if matches!(a.as_ref().return_type(), ReturnType::Set(_))
                         && matches!(b.as_ref().return_type(), ReturnType::Set(_)) =>
                 {
-                    let expr1 = Expr::SubsetEq(Metadata::new(), a.clone(), b.clone());
-                    let expr2 = Expr::SubsetEq(Metadata::new(), a.clone(), c.clone());
+                    let expr1 = Expr::SubsetEq(Box::new(Metadata::new()), a.clone(), b.clone());
+                    let expr2 = Expr::SubsetEq(Box::new(Metadata::new()), a.clone(), c.clone());
                     Ok(Reduction::pure(Expr::And(
-                        Metadata::new(),
+                        Box::new(Metadata::new()),
                         Moo::new(matrix_expr![expr1, expr2]),
                     )))
                 }

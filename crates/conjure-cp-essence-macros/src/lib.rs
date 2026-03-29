@@ -42,9 +42,9 @@ use expand::{expand_expr, expand_expr_vec};
 /// let expr = essence_expr!(2 + &x);
 /// assert_eq!(
 ///     expr,
-///     Expression::Sum(Metadata::new(), Moo::new(matrix_expr![
-///         Expression::Atomic(Metadata::new(), 2.into()),
-///         Expression::Atomic(Metadata::new(), 42.into())
+///     Expression::Sum(Box::new(Metadata::new()), Moo::new(matrix_expr![
+///         Expression::Atomic(Box::new(Metadata::new()), 2.into()),
+///         Expression::Atomic(Box::new(Metadata::new()), 42.into())
 ///     ]))
 /// );
 /// ```
@@ -71,16 +71,16 @@ pub fn essence_expr(args: TokenStream) -> TokenStream {
 /// assert_eq!(exprs.len(), 2);
 /// assert_eq!(
 ///     exprs[0],
-///     Expression::Sum(Metadata::new(), Moo::new(matrix_expr![
-///         Expression::Atomic(Metadata::new(), 2.into()),
-///         Expression::Atomic(Metadata::new(), 2.into())
+///     Expression::Sum(Box::new(Metadata::new()), Moo::new(matrix_expr![
+///         Expression::Atomic(Box::new(Metadata::new()), 2.into()),
+///         Expression::Atomic(Box::new(Metadata::new()), 2.into())
 ///     ]))
 /// );
 /// assert_eq!(
 ///    exprs[1],
-///     Expression::Eq(Metadata::new(),
-///         Moo::new(Expression::Atomic(Metadata::new(), false.into())),
-///         Moo::new(Expression::Atomic(Metadata::new(), true.into()))
+///     Expression::Eq(Box::new(Metadata::new()),
+///         Moo::new(Expression::Atomic(Box::new(Metadata::new()), false.into())),
+///         Moo::new(Expression::Atomic(Box::new(Metadata::new()), true.into()))
 ///     )
 /// );
 /// ```
